@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "0.0.2",
   "organization": "personal",
   "date": "July 2026",
   "abstract": "Java and Spring Boot development best practices covering Spring Boot development, Java code review, testing (JUnit 5/Mockito/Testcontainers), and JVM troubleshooting. Optimized for AI agents. Default code style: constructor injection + Lombok essentials, Spring Boot 3.x / Java 17+.",
