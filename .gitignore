@@ -1,0 +1,31 @@
+# ===== 编辑器/IDE =====
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+*~
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Java 构建产物（如果后续在 assets 加可编译示例）=====
+target/
+build/
+*.class
+*.jar
+*.war
+
+# ===== 日志/临时 =====
+*.log
+*.hprof
+*.dump
+tmp/
+
+# ===== 凭据/本地配置（绝不提交）=====
+.env
+.env.local
+application-local.yml
+secrets/

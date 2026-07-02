@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "organization": "personal",
+  "date": "July 2026",
+  "abstract": "Java and Spring Boot development best practices covering Spring Boot development, Java code review, testing (JUnit 5/Mockito/Testcontainers), and JVM troubleshooting. Optimized for AI agents. Default code style: constructor injection + Lombok essentials, Spring Boot 3.x / Java 17+.",
+  "codeStyle": {
+    "di": "constructor injection via @RequiredArgsConstructor",
+    "logging": "@Slf4j + SLF4J",
+    "dataClasses": "prefer record for DTO, @Data for @Entity",
+    "springBootDefault": "3.x (jakarta.*)",
+    "buildTool": "Maven"
+  },
+  "references": [
+    "https://docs.spring.io/spring-boot/docs/current/reference/html/",
+    "https://docs.spring.io/spring-framework/reference/",
+    "https://junit.org/junit5/docs/current/user-guide/",
+    "https://www.testcontainers.org/",
+    "https://docs.oracle.com/en/java/javase/21/docs/specs/",
+    "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide"
+  ]
+}

@@ -1,0 +1,96 @@
+# =============================================================================
+# Multi-environment application.yml template (Spring Boot 3.x + MyBatis-Plus).
+# Shared config here; environment overrides in application-{dev,prod}.yml.
+# =============================================================================
+
+spring:
+  application:
+    name: shop-service
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/shop?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}                       # no default → fails fast if missing
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # MyBatis-Plus config
+  mybatis-plus:
+    mapper-locations: classpath*:/mapper/**/*.xml
+    type-aliases-package: com.acme.shop.**.entity
+    configuration:
+      map-underscore-to-camel-case: true           # t_order_no → orderNo
+      cache-enabled: false                         # disable L2 cache unless explicitly needed
+      log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+    global-config:
+      db-config:
+        id-type: assign_id                         # snowflake default
+        logic-delete-field: deleted                # logical delete field
+        logic-delete-value: 1
+        logic-not-delete-value: 0
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful                               # let in-flight requests finish on SIGTERM
+
+# Actuator / observability — see sb-actuator-health.md
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# App-specific config — bind via @ConfigurationProperties (see sb-config-profiles.md)
+app:
+  order:
+    max-items-per-cart: 50
+    reservation-timeout: 15m
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    com.acme: INFO
+
+---
+# ====== dev profile ======
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/shop_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: devpass                              # local dev only; never commit prod creds
+logging:
+  level:
+    com.acme: DEBUG
+    com.baomidou.mybatisplus: DEBUG
+
+---
+# ====== prod profile ======
+spring:
+  config:
+    activate:
+      on-profile: prod
+  # prod values come from env vars; nothing committed here
+logging:
+  level:
+    root: WARN
+    com.acme: INFO
+app:
+  order:
+    max-items-per-cart: 100
