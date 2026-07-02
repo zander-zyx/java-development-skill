@@ -20,7 +20,7 @@
 - [📖 What is this](#-what-is-this) · [🎯 Why use a skill](#-why-use-a-skill) · [✨ Highlights](#-highlights)
 - [📂 Project Structure](#-project-structure) · [🚀 Install](#-install) · [💡 How to use](#-how-to-use)
 - [🛠 Troubleshooting](#-troubleshooting) · [🎨 Code Style Baseline](#-code-style-baseline) · [📑 Rule Index](#-rule-index)
-- [📦 Git Quick Start](#-git-quick-start) · [🤝 How to Contribute](#-how-to-contribute) · [📜 License](#-license)
+- [🤝 How to Contribute](#-how-to-contribute) · [📜 License](#-license)
 
 ---
 
@@ -183,7 +183,34 @@ Installer options:
 
 > **Windows users**: run the installer in **Git Bash** or **WSL** (not cmd.exe / PowerShell). Git Bash comes with Git for Windows. If the symlink step falls back to a copy, that's fine — re-run `git pull && ./install.sh --force` to update.
 
-### Option 2 — Manual install for one tool
+### Option 2 — Let your AI tool install it (no terminal needed)
+
+You're already using an AI coding agent — the easiest path is to ask it to install the skill for you. Open a chat in Claude Code / Codex / OpenCode / ZCode and paste:
+
+```
+Install the java-development skill from https://github.com/zander-zyx/java-development-skill
+into your skill directory, then confirm it's loaded.
+```
+
+The agent will `git clone` the repo into its own skill folder, verify the `SKILL.md` is in place, and tell you when it's done. You don't need to know the path or run any command yourself.
+
+**What the agent does** (so you know what to expect):
+1. Clones the repo into this tool's skills directory (e.g. `~/.claude/skills/java-development/`).
+2. Lists the directory to confirm `SKILL.md` is present.
+3. Reports success — you then restart the session (or it reloads) so the skill is picked up.
+
+**Even easier — one line for each tool:**
+
+| Tool | Paste this into the chat |
+|------|--------------------------|
+| Claude Code | `Clone https://github.com/zander-zyx/java-development-skill into ~/.claude/skills/java-development and confirm SKILL.md is there.` |
+| Codex | `Clone https://github.com/zander-zyx/java-development-skill into ~/.codex/skills/java-development and confirm SKILL.md is there.` |
+| OpenCode | `Clone https://github.com/zander-zyx/java-development-skill into ~/.opencode/skills/java-development and confirm SKILL.md is there.` |
+| ZCode | `Clone https://github.com/zander-zyx/java-development-skill into ~/.zcode/skills/java-development and confirm SKILL.md is there.` |
+
+> If the GitHub URL is slow, tell the agent the mirror instead: `https://gitee.com/zdking_project/java-development-skill.git` (China) or `https://cnb.cool/zdking/java-development-skill`.
+
+### Option 3 — Manual install for one tool
 
 If you prefer not to run a script, clone the repo directly into your tool's skill directory. Each tool looks in a different folder under your home:
 
@@ -196,7 +223,7 @@ If you prefer not to run a script, clone the repo directly into your tool's skil
 
 That single `git clone` is the whole install. No build step, no config edit.
 
-### Option 3 — Project-level install (only one project)
+### Option 4 — Project-level install (only one project)
 
 Want the skill active inside one Java project, not globally? Clone into the project's local tool directory:
 
@@ -210,7 +237,7 @@ git clone https://github.com/zander-zyx/java-development-skill.git .claude/skill
 
 Project-level skills take priority over user-level, so this also overrides a global install for that project only.
 
-### Option 4 — Read the rules without any tool
+### Option 5 — Read the rules without any tool
 
 The `*.md` files are plain Markdown. Browse them on GitHub/Gitee/cnb, or clone and read locally. Copy individual rules into your team wiki. No AI tool required.
 
@@ -375,67 +402,6 @@ Every example in this skill follows the same conventions, so generated code is c
 | `jvm-gc-logs.md` | MEDIUM | -Xlog:gc* interpretation, GCEasy |
 
 </details>
-
-## 📦 Git Quick Start
-
-A minimal command-line primer for collaborators. Covers global setup, creating a new repo, and pushing an existing repo.
-
-### Global setup (once per machine)
-
-```bash
-git config --global user.name "Zander"
-git config --global user.email "zd@zdking.com"
-```
-
-### Create a new repository
-
-```bash
-mkdir java-development-skill
-cd java-development-skill
-git init
-touch README.md
-git add README.md
-git commit -m "first commit"
-git remote add origin https://github.com/zander-zyx/java-development-skill.git
-git push -u origin main
-```
-
-### Push an existing repository
-
-```bash
-cd existing_git_repo
-git remote add origin https://github.com/zander-zyx/java-development-skill.git
-git branch -M main
-git push -u origin main
-```
-
-### Mirror to multiple remotes (GitHub / cnb.cool / Gitee)
-
-This repo is mirrored across three hosts. To push to all of them in one command:
-
-```bash
-# one-time: add the extra remotes
-git remote add cnb   https://cnb.cool/zdking/java-development-skill
-git remote add gitee https://gitee.com/zdking_project/java-development-skill.git
-
-# create a single push URL that fans out to all three
-git remote set-url --add --push origin https://github.com/zander-zyx/java-development-skill.git
-git remote set-url --add --push origin https://cnb.cool/zdking/java-development-skill
-git remote set-url --add --push origin https://gitee.com/zdking_project/java-development-skill.git
-
-# now `git push` hits all three at once
-git push
-```
-
-Or push remotes individually:
-
-```bash
-git push origin main   # GitHub
-git push cnb    main   # cnb.cool
-git push gitee  main   # Gitee
-```
-
-> **Note**: if you rewrite history (e.g. amend, rebase), use `git push --force-with-lease` on each remote to update.
 
 ## 🤝 How to Contribute
 

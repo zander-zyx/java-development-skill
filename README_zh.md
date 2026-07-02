@@ -20,7 +20,7 @@
 - [📖 这是什么](#-这是什么) · [🎯 为什么要用 skill](#-为什么要用-skill) · [✨ 特性亮点](#-特性亮点)
 - [📂 项目结构](#-项目结构) · [🚀 安装](#-安装) · [💡 怎么使用](#-怎么使用)
 - [🛠 故障排查](#-故障排查) · [🎨 代码风格基线](#-代码风格基线) · [📑 规则索引](#-规则索引)
-- [📦 Git 命令行入门](#-git-命令行入门) · [🤝 如何贡献](#-如何贡献) · [📜 许可证](#-许可证)
+- [🤝 如何贡献](#-如何贡献) · [📜 许可证](#-许可证)
 
 ---
 
@@ -184,7 +184,34 @@ Restart any running tool sessions to pick it up.
 
 > **Windows 用户**：请在 **Git Bash** 或 **WSL** 里运行脚本（不要用 cmd.exe / PowerShell）。Git Bash 随 Git for Windows 自带。如果软链接步骤回退成复制，也没问题 —— 之后用 `git pull && ./install.sh --force` 更新即可。
 
-### 方式二：手动安装到单个工具
+### 方式二：让 AI 工具帮你装（不用开终端）
+
+你本来就在用 AI 编码助手 —— 最省事的方式是直接让它帮你装 skill。在 Claude Code / Codex / OpenCode / ZCode 里打开对话，粘贴：
+
+```
+帮我安装 java-development skill，地址 https://github.com/zander-zyx/java-development-skill
+装到你的 skill 目录里，然后确认加载成功。
+```
+
+Agent 会自动 `git clone` 到它自己的 skill 目录、确认 `SKILL.md` 就位、然后告诉你装好了。你不需要知道路径，也不用敲任何命令。
+
+**Agent 会做什么**（让你心里有数）：
+1. 把仓库 clone 到该工具的 skills 目录（比如 `~/.claude/skills/java-development/`）。
+2. 列目录确认 `SKILL.md` 存在。
+3. 报告成功 —— 你重启会话（或它自动重载）后 skill 即生效。
+
+**更省事 —— 每个工具一行话：**
+
+| 工具 | 把这句粘贴到对话里 |
+|------|-------------------|
+| Claude Code | `把 https://github.com/zander-zyx/java-development-skill clone 到 ~/.claude/skills/java-development，确认 SKILL.md 在。` |
+| Codex | `把 https://github.com/zander-zyx/java-development-skill clone 到 ~/.codex/skills/java-development，确认 SKILL.md 在。` |
+| OpenCode | `把 https://github.com/zander-zyx/java-development-skill clone 到 ~/.opencode/skills/java-development，确认 SKILL.md 在。` |
+| ZCode | `把 https://github.com/zander-zyx/java-development-skill clone 到 ~/.zcode/skills/java-development，确认 SKILL.md 在。` |
+
+> 如果 GitHub 慢，告诉 Agent 用镜像：`https://gitee.com/zdking_project/java-development-skill.git`（国内）或 `https://cnb.cool/zdking/java-development-skill`。
+
+### 方式三：手动安装到单个工具
 
 不想跑脚本的话，直接把仓库 clone 到工具的 skill 目录。每个工具在 home 下的目录不同：
 
@@ -197,7 +224,7 @@ Restart any running tool sessions to pick it up.
 
 这一条 `git clone` 就是完整安装，没有构建步骤，不用改配置。
 
-### 方式三：项目级安装（只在一个项目里生效）
+### 方式四：项目级安装（只在一个项目里生效）
 
 只想让 skill 在某个 Java 项目里生效、不要全局？克隆到该项目的本地工具目录：
 
@@ -211,7 +238,7 @@ git clone https://github.com/zander-zyx/java-development-skill.git .claude/skill
 
 项目级 skill 优先级高于用户级，所以这种方式还能针对单个项目覆盖全局安装。
 
-### 方式四：不装任何工具，纯阅读
+### 方式五：不装任何工具，纯阅读
 
 `*.md` 文件都是纯 Markdown。可以直接在 GitHub/Gitee/cnb 上浏览，或 clone 下来本地看。把单条规则复制到团队 Wiki 也行。不需要任何 AI 工具。
 
@@ -376,67 +403,6 @@ git pull
 | `jvm-gc-logs.md` | MEDIUM | -Xlog:gc* 解读、GCEasy |
 
 </details>
-
-## 📦 Git 命令行入门
-
-给协作者的简易命令行教程，涵盖全局设置、创建新仓库、推送已有仓库。
-
-### 全局设置（每台电脑一次）
-
-```bash
-git config --global user.name "Zander"
-git config --global user.email "zd@zdking.com"
-```
-
-### 创建新仓库
-
-```bash
-mkdir java-development-skill
-cd java-development-skill
-git init
-touch README.md
-git add README.md
-git commit -m "first commit"
-git remote add origin https://github.com/zander-zyx/java-development-skill.git
-git push -u origin main
-```
-
-### 推送已有仓库
-
-```bash
-cd existing_git_repo
-git remote add origin https://github.com/zander-zyx/java-development-skill.git
-git branch -M main
-git push -u origin main
-```
-
-### 多远程镜像推送（GitHub / cnb.cool / Gitee）
-
-本仓库在三个平台同步镜像。要一次推送到全部三个平台：
-
-```bash
-# 一次性：添加额外的远程
-git remote add cnb   https://cnb.cool/zdking/java-development-skill
-git remote add gitee https://gitee.com/zdking_project/java-development-skill.git
-
-# 创建一个聚合推送地址，自动扇出到三个平台
-git remote set-url --add --push origin https://github.com/zander-zyx/java-development-skill.git
-git remote set-url --add --push origin https://cnb.cool/zdking/java-development-skill
-git remote set-url --add --push origin https://gitee.com/zdking_project/java-development-skill.git
-
-# 现在 `git push` 会同时推送到三个平台
-git push
-```
-
-或者分别推送各远程：
-
-```bash
-git push origin main   # GitHub
-git push cnb    main   # cnb.cool
-git push gitee  main   # Gitee
-```
-
-> **注意**：如果你重写了历史（比如 amend、rebase），需要用 `git push --force-with-lease` 更新每个远程。
 
 ## 🤝 如何贡献
 
