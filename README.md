@@ -1,39 +1,219 @@
 # Java Development Skill
 
-A unified skill for Java + Spring Boot engineering, organized into 4 domains:
+[![Java](https://img.shields.io/badge/Java-17%2F21-orange.svg)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![MyBatis-Plus](https://img.shields.io/badge/MyBatis--Plus-3.5%2B-red.svg)](https://baomidou.com/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
+[![Rules](https://img.shields.io/badge/rules-26-success.svg)](#rule-index)
 
-- **Spring Boot Development** — controllers, services, repositories, config, JPA, exceptions, REST clients, actuator
-- **Java Code Review** — concurrency, resource leaks, NPE/Optional, equals/hashCode, Stream pitfalls
-- **Java Testing** — JUnit 5, Mockito, AssertJ, Testcontainers, Spring Boot Test slices
-- **JVM Troubleshooting** — GC tuning, OOM analysis, thread dumps, high CPU
+**English** | [中文](./README_zh.md)
 
-## Code Style Baseline
+> A unified **AI Agent Skill** for Java + Spring Boot engineering — development conventions, code review, testing, and JVM troubleshooting. Designed for ZCode / Claude Code / any agent that supports the SKILL.md spec.
 
-All examples in this skill follow:
+---
 
-- Constructor injection via `final` fields + Lombok `@RequiredArgsConstructor` (no field `@Autowired`)
-- Lombok `@Slf4j` for logging (no `System.out.println`)
-- Java `record` for immutable DTOs; Lombok `@Data` only for JPA `@Entity`
-- Spring Boot 3.x (`jakarta.*`) as default; 2.x differences covered in `sb-migration-2-to-3.md`
-- Maven as build tool
+## 📖 What is this
 
-## How it's organized
+A knowledge base that turns an AI coding agent into a **senior Java/Spring Boot engineer**. Instead of relying on the model's general Java knowledge, this skill injects curated, opinionated best practices — the kind a staff engineer would enforce in code review.
+
+The skill is organized around **4 real-world engineering scenarios** and uses **progressive disclosure**:
+
+- `SKILL.md` (router) is always in the agent's context — a lightweight decision tree + index.
+- Individual rule files are loaded **on demand**, only when the task matches. This keeps every turn lean while the full knowledge base is 26 deep-dive rules.
+
+This mirrors how a human engineer works: you don't re-read all of "Effective Java" every time you write a method — you look up the specific rule when it applies.
+
+## ✨ Highlights
+
+- **🎯 China-ecosystem first** — MyBatis-Plus is the default persistence layer (with JPA as an optional reference), matching the dominant stack in Chinese Spring Boot projects.
+- **🏗 4 domains, 26 rules** — Spring Boot dev, Java code review, Java testing, JVM troubleshooting.
+- **📐 Opinionated code style** — constructor injection + Lombok essentials (`@RequiredArgsConstructor` / `@Slf4j` / `@Data`), consistent across every example.
+- **🔄 Version-aware** — defaults to Spring Boot 3.x (`jakarta.*`, Java 17+), with a dedicated migration guide covering all 6 breaking changes between 2.x and 3.x.
+- **📋 Copy-ready templates** — Maven poms (SB2/SB3), controller-service-test skeleton, multi-environment `application.yml`.
+- **🔍 Reviewer-friendly** — every code-review rule includes a checklist you can run mentally (or have the agent run) over any code.
+
+## 📂 Project Structure
 
 ```
-SKILL.md                  ← router: decision tree + rule index (always loaded)
-spring-boot/              ← 8 rule files (loaded on demand)
-code-review/              ← 6 rule files
-testing/                  ← 6 rule files
-jvm/                      ← 5 rule files
-assets/                   ← copy-ready templates (pom, skeleton, config)
+java-development-skill/
+├── SKILL.md                # Router: decision tree + rule index (always loaded)
+├── README.md               # This file
+├── metadata.json           # Version metadata
+│
+├── spring-boot/            # 🌱 Domain A — Spring Boot Development (9 rules)
+│   ├── sb-dependency-injection.md      Constructor injection + Lombok strategy
+│   ├── sb-project-structure.md         Package-by-feature layering
+│   ├── sb-config-profiles.md           application.yml + profiles + secrets
+│   ├── sb-mybatis-plus.md       ⭐    BaseMapper/IService, pagination, logical delete (DEFAULT)
+│   ├── sb-jpa-repository.md           JPA: N+1, @Transactional, Hibernate 6 UUID (optional)
+│   ├── sb-exception-handling.md       @RestControllerAdvice + RFC 7807 ProblemDetail
+│   ├── sb-rest-client.md              RestClient (new) vs RestTemplate (deprecated)
+│   ├── sb-actuator-health.md          Actuator + Micrometer + tracing
+│   └── sb-migration-2-to-3.md  ⭐    SB 2.x ↔ 3.x migration (6 key differences)
+│
+├── code-review/            # 🔍 Domain B — Java Code Review (6 rules)
+│   ├── cr-concurrency.md              synchronized, locks, race conditions
+│   ├── cr-resource-leak.md            try-with-resources, connections
+│   ├── cr-null-safety.md              Optional, @Nullable, NPE defense
+│   ├── cr-equals-hashcode.md          equals/hashCode contract, records
+│   ├── cr-stream-pitfalls.md          parallel stream, reuse, mutation
+│   └── cr-anti-patterns.md            magic values, swallowed exceptions, logging
+│
+├── testing/                # 🧪 Domain C — Java Testing (6 rules)
+│   ├── test-layering.md               Unit / slice / integration pyramid
+│   ├── test-junit5.md                 JUnit 5 lifecycle, parameterized, extensions
+│   ├── test-mockito.md                stubbing, verification, spy, static mock
+│   ├── test-testcontainers.md  ⭐    @ServiceConnection, real DB boundaries
+│   ├── test-spring-boot-test.md       @WebMvcTest / @DataJpaTest / @SpringBootTest
+│   └── test-coverage-assertj.md       AssertJ fluent assertions + JaCoCo
+│
+├── jvm/                    # 🔥 Domain D — JVM Troubleshooting (5 rules)
+│   ├── jvm-gc-tuning.md               G1 / ZGC / Parallel selection + tuning
+│   ├── jvm-oom-analysis.md            Heap dump + MAT dominator tree
+│   ├── jvm-thread-dump.md             Deadlock detection, blocked threads
+│   ├── jvm-cpu-high.md                top -Hp + jstack + async-profiler
+│   └── jvm-gc-logs.md                 -Xlog:gc* interpretation
+│
+└── assets/                 # 📋 Copy-ready templates
+    ├── pom-spring-boot-3.xml           SB3 pom (Java 17, jakarta, MyBatis-Plus)
+    ├── pom-spring-boot-2.xml           SB2 pom (javax, legacy maintenance)
+    ├── controller-service-test.java    Controller + Service + Mapper + Test skeleton
+    └── application.yml.template        Multi-environment config (dev/prod profiles)
 ```
 
-The SKILL.md stays in context; each rule file is read only when relevant. This keeps the skill rich without bloating every turn.
+⭐ = highest-impact rules, read these first.
 
-## For AI agents
+## 🚀 Quick Start
 
-To force-load this skill on a specific prompt, the SKILL.md frontmatter `description` enumerates trigger keywords (@RestController, @SpringBootTest, OOM, GC, N+1, etc.). When authoring Java code, the model should consult the matching rule file before writing.
+### Option 1: Install as a ZCode / Claude Code skill
 
-## Version
+ZCode discovers skills in these directories (highest priority first):
 
-See `metadata.json`. Authored July 2026 against Spring Boot 3.x + Java 17/21.
+- `<project>/.zcode/skills/<name>/SKILL.md`
+- `~/.zcode/skills/<name>/SKILL.md`         ← recommended for personal use
+- `~/.agents/skills/<name>/SKILL.md`
+
+```bash
+# Clone into your user-level skills directory
+git clone https://github.com/zander-zyx/java-development-skill.git ~/.zcode/skills/java-development
+```
+
+That's it. The next time you ask your agent about Java / Spring Boot, it auto-loads the relevant rules.
+
+### Option 2: Project-level (this repo only)
+
+```bash
+# Inside your Java project
+git clone https://github.com/zander-zyx/java-development-skill.git .zcode/skills/java-development
+```
+
+### Option 3: Just read the rules
+
+The `*.md` files are plain markdown — read them directly as a refresher, or copy individual rules into your team's wiki.
+
+## 💡 Usage Examples
+
+Once installed, your agent picks the right rule automatically based on context. You don't need to memorize file names.
+
+| You say... | Skill loads... |
+|-----------|----------------|
+| *"Write a JPA repository for Order, watch out for N+1"* | `sb-jpa-repository.md` (N+1 → JOIN FETCH / EntityGraph) |
+| *"My MyBatis-Plus pagination returns all rows"* | `sb-mybatis-plus.md` (forgot `PaginationInnerInterceptor`) |
+| *"Review this class for thread safety"* | `cr-concurrency.md` + `cr-resource-leak.md` |
+| *"Set up Testcontainers with MySQL"* | `test-testcontainers.md` (`@ServiceConnection`) |
+| *"Prod is OOMing, how do I find the leak?"* | `jvm-oom-analysis.md` (heap dump + MAT dominator tree) |
+| *"Migrating from Spring Boot 2.7 to 3"* | `sb-migration-2-to-3.md` (6 breaking changes checklist) |
+
+The `SKILL.md` `description` frontmatter enumerates trigger keywords (`@RestController`, `@SpringBootTest`, `OOM`, `GC`, `N+1`, `MyBatis-Plus`, etc.) so the skill triggers reliably even when you don't say "Java" explicitly.
+
+## 🎨 Code Style Baseline
+
+Every example in this skill follows the same conventions, so generated code is consistent:
+
+| Aspect | Convention |
+|--------|-----------|
+| **Dependency injection** | Constructor injection via `final` fields + `@RequiredArgsConstructor` (never field `@Autowired`) |
+| **Logging** | Lombok `@Slf4j` + SLF4J (never `System.out.println`) |
+| **DTOs** | Java `record` (immutable, no Lombok needed) |
+| **Entities** | Lombok `@Data` (mutable, with id-based `equals`/`hashCode` — see `cr-equals-hashcode.md`) |
+| **Persistence** | **MyBatis-Plus** by default (China mainstream); JPA as optional reference |
+| **Spring Boot** | 3.x (`jakarta.*`, Java 17+); 2.x differences in `sb-migration-2-to-3.md` |
+| **Build** | Maven |
+
+## 📑 Rule Index
+
+<details>
+<summary><b>🌱 Spring Boot Development (9 rules)</b></summary>
+
+| Rule | Impact | Covers |
+|------|--------|--------|
+| `sb-dependency-injection.md` | HIGH | Constructor injection, Lombok allowlist, Bean lifecycle |
+| `sb-project-structure.md` | HIGH | Package-by-feature layering |
+| `sb-config-profiles.md` | MEDIUM | application.yml, profiles, `spring.config.import` |
+| `sb-mybatis-plus.md` ⭐ | HIGH | BaseMapper/IService, LambdaQueryWrapper, pagination, logical delete |
+| `sb-jpa-repository.md` | MEDIUM | N+1, @Transactional, lazy loading, Hibernate 6 UUID |
+| `sb-exception-handling.md` | HIGH | @RestControllerAdvice, RFC 7807 ProblemDetail |
+| `sb-rest-client.md` | MEDIUM | RestClient vs RestTemplate (deprecated) vs WebClient |
+| `sb-actuator-health.md` | MEDIUM | Actuator, Micrometer, distributed tracing |
+| `sb-migration-2-to-3.md` ⭐ | HIGH | 2.x ↔ 3.x migration (6 breaking changes) |
+
+</details>
+
+<details>
+<summary><b>🔍 Java Code Review (6 rules)</b></summary>
+
+| Rule | Impact | Covers |
+|------|--------|--------|
+| `cr-concurrency.md` | HIGH | synchronized, locks, race conditions, atomic classes, virtual threads |
+| `cr-resource-leak.md` | HIGH | try-with-resources, streams, connections, locks |
+| `cr-null-safety.md` | HIGH | Optional usage, @Nullable, NPE defense |
+| `cr-equals-hashcode.md` | MEDIUM | equals/hashCode contract, records, entity equality |
+| `cr-stream-pitfalls.md` | MEDIUM | parallel stream, reuse, shared mutation |
+| `cr-anti-patterns.md` | MEDIUM | magic values, swallowed exceptions, logging abuse |
+
+</details>
+
+<details>
+<summary><b>🧪 Java Testing (6 rules)</b></summary>
+
+| Rule | Impact | Covers |
+|------|--------|--------|
+| `test-layering.md` | HIGH | Unit / slice / integration test pyramid |
+| `test-junit5.md` | HIGH | JUnit 5 lifecycle, parameterized tests, extensions |
+| `test-mockito.md` | HIGH | Stub/spy/verify, argument matchers, static mocking |
+| `test-testcontainers.md` ⭐ | HIGH | @ServiceConnection, real DB boundaries, container reuse |
+| `test-spring-boot-test.md` | HIGH | @WebMvcTest / @DataJpaTest / @SpringBootTest slices |
+| `test-coverage-assertj.md` | MEDIUM | AssertJ fluent assertions, JaCoCo coverage |
+
+</details>
+
+<details>
+<summary><b>🔥 JVM Troubleshooting (5 rules)</b></summary>
+
+| Rule | Impact | Covers |
+|------|--------|--------|
+| `jvm-gc-tuning.md` | HIGH | G1 / ZGC / Parallel selection, heap sizing |
+| `jvm-oom-analysis.md` | HIGH | Heap dump on OOM, MAT dominator tree, leak patterns |
+| `jvm-thread-dump.md` | HIGH | Deadlock detection, blocked threads, thread leaks |
+| `jvm-cpu-high.md` | HIGH | top -Hp + jstack + async-profiler flame graphs |
+| `jvm-gc-logs.md` | MEDIUM | -Xlog:gc* interpretation, GCEasy |
+
+</details>
+
+## 🤝 How to Contribute
+
+This is a personal skill but PRs are welcome:
+
+1. **Typo / clarification** — direct PR, no discussion needed.
+2. **New rule** — open an issue first to discuss scope. Follow the existing file structure: frontmatter (`title` / `impact` / `tags` / `description`) + sections (`Why it matters` / `Correct` / `Incorrect` / `Context`).
+3. **Updated framework behavior** — Java/Spring evolves fast. If a rule is outdated for the current version, PR the fix and note the version in `Context`.
+
+See `metadata.json` for the version this skill was authored against.
+
+## 📜 License
+
+MIT — see [LICENSE](LICENSE). Free to use, modify, distribute. Attribution appreciated but not required.
+
+---
+
+**Authored**: July 2026 · **Target**: Spring Boot 3.x + Java 17/21 · **Persistence default**: MyBatis-Plus
