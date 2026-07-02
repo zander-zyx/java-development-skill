@@ -15,6 +15,15 @@
 
 ---
 
+## 📑 Table of Contents
+
+- [📖 What is this](#-what-is-this) · [🎯 Why use a skill](#-why-use-a-skill) · [✨ Highlights](#-highlights)
+- [📂 Project Structure](#-project-structure) · [🚀 Install](#-install) · [💡 How to use](#-how-to-use)
+- [🛠 Troubleshooting](#-troubleshooting) · [🎨 Code Style Baseline](#-code-style-baseline) · [📑 Rule Index](#-rule-index)
+- [📦 Git Quick Start](#-git-quick-start) · [🤝 How to Contribute](#-how-to-contribute) · [📜 License](#-license)
+
+---
+
 ## 📖 What is this
 
 A knowledge base that turns an AI coding agent into a **senior Java/Spring Boot engineer**. Instead of relying on the model's general Java knowledge, this skill injects curated, opinionated best practices — the kind a staff engineer would enforce in code review.
@@ -34,6 +43,28 @@ This mirrors how a human engineer works: you don't re-read all of "Effective Jav
 - **🔄 Version-aware** — defaults to Spring Boot 3.x (`jakarta.*`, Java 17+), with a dedicated migration guide covering all 6 breaking changes between 2.x and 3.x.
 - **📋 Copy-ready templates** — Maven poms (SB2/SB3), controller-service-test skeleton, multi-environment `application.yml`.
 - **🔍 Reviewer-friendly** — every code-review rule includes a checklist you can run mentally (or have the agent run) over any code.
+
+## 🎯 Why use a skill
+
+Modern LLMs already "know" Java. So why install this skill? Because general knowledge is **unopinionated** and **inconsistent across turns** — the model will write field-injection today and constructor-injection tomorrow. This skill locks in **one coherent set of conventions** and surfaces the right rule at the right moment.
+
+| Without the skill | With this skill |
+|-------------------|-----------------|
+| Model picks injection style by mood | Always constructor injection + `@RequiredArgsConstructor` |
+| Forgets `@Transactional(rollbackFor=Exception.class)` on checked exceptions | Rule auto-applied |
+| Reaches for H2 to "test" MyBatis SQL | Uses Testcontainers + real MySQL |
+| Generic "check for thread safety" advice | Runs the `cr-concurrency.md` checklist item by item |
+| Guesses SB 2.x vs 3.x behavior | Loads `sb-migration-2-to-3.md`, gets the 6 breaking changes |
+| Copy-pastes stale Lombok advice (`@AllArgsConstructor`) | Restricted to the Lombok allowlist |
+
+The skill is the difference between "an AI that can write Java" and "an AI that writes Java the way your team does".
+
+### Requirements
+
+- **Git** — to clone the repo
+- **One of**: Claude Code, OpenAI Codex CLI, OpenCode, or ZCode installed
+- **OS**: macOS, Linux, or Windows (Git Bash / WSL for the installer script)
+- **No Java/JDK required to use the skill** — it's knowledge for the agent, not a runtime dependency. (Your Java project itself obviously needs a JDK.)
 
 ## 📂 Project Structure
 
@@ -80,15 +111,19 @@ java-development-skill/
 │   ├── jvm-cpu-high.md                top -Hp + jstack + async-profiler
 │   └── jvm-gc-logs.md                 -Xlog:gc* interpretation
 │
-└── assets/                 # 📋 Copy-ready templates
-    ├── pom-spring-boot-3.xml           SB3 pom (Java 17, jakarta, MyBatis-Plus)
-    ├── pom-spring-boot-2.xml           SB2 pom (javax, legacy maintenance)
-    ├── controller-service-test.java    Controller + Service + Mapper + Test skeleton
-    └── application.yml.template        Multi-environment config (dev/prod profiles)
-
-examples/                  # 💡 See it in action
-    ├── usage-examples.md              Real prompts + what the skill produces (EN)
-    └── usage-examples.zh.md           中文版
+├── assets/                 # 📋 Copy-ready templates
+│   ├── pom-spring-boot-3.xml           SB3 pom (Java 17, jakarta, MyBatis-Plus)
+│   ├── pom-spring-boot-2.xml           SB2 pom (javax, legacy maintenance)
+│   ├── controller-service-test.java    Controller + Service + Mapper + Test skeleton
+│   └── application.yml.template        Multi-environment config (dev/prod profiles)
+│
+├── examples/               # 💡 See it in action
+│   ├── usage-examples.md               Real prompts + what the skill produces (EN)
+│   └── usage-examples.zh.md            中文版
+│
+├── install.sh              # 🔧 Cross-tool one-click installer
+├── LICENSE                 # MIT
+└── metadata.json           # Version metadata
 ```
 
 ⭐ = highest-impact rules, read these first.
@@ -97,66 +132,175 @@ examples/                  # 💡 See it in action
 
 This skill works across **four AI coding tools**. The `SKILL.md` format follows the emerging [agentskills.io](https://agentskills.io) standard — the same content loads in all of them. Each tool just looks in its own directory.
 
-### One-click installer (recommended)
+### Prerequisites
+
+Before installing the skill, you need **Git** and **at least one supported AI tool** already on your machine. The skill is just knowledge for the agent — it does not need Java or a JDK itself (your Java project does).
+
+| Prerequisite | Check it's installed | How to install |
+|--------------|---------------------|----------------|
+| **Git** | `git --version` | [git-scm.com](https://git-scm.com/downloads) |
+| **Claude Code** | `claude --version` | `npm install -g @anthropic-ai/claude-code` |
+| **OpenAI Codex** | `codex --version` | [developers.openai.com/codex](https://developers.openai.com/codex) |
+| **OpenCode** | `opencode --version` | [opencode.ai/docs](https://opencode.ai/docs/) |
+| **ZCode** | check `~/.zcode/` exists | your ZCode distribution |
+
+You only need **one** of the four tools. Pick whichever you already use.
+
+### Option 1 — One-click installer (recommended)
+
+The installer auto-detects which of the four tools you have and links the skill into each one's folder.
 
 ```bash
+# 1. clone the repo
 git clone https://github.com/zander-zyx/java-development-skill.git
+
+# 2. enter it
 cd java-development-skill
+
+# 3. run the installer
 ./install.sh
 ```
 
-The installer detects which tools you have installed (Claude Code, Codex, OpenCode, ZCode) and symlinks the skill into each one's discovery directory. Options:
+**Expected output** (you'll see one line per tool you have installed):
+```
+✓ claude: linked → /Users/you/.claude/skills/java-development
+✓ codex:  linked → /Users/you/.codex/skills/java-development
+Done. The 'java-development' skill is now active in the tools above.
+Restart any running tool sessions to pick it up.
+```
 
-- `./install.sh --force` — overwrite an existing install
-- `./install.sh --uninstall` — remove from all tools
+Installer options:
+- `./install.sh --force` — overwrite an existing install (re-link after a clone URL change, etc.)
+- `./install.sh --uninstall` — remove the skill from all detected tools
+- `./install.sh --help` — show usage
 
-### Manual install per tool
+> **Slow from your region?** Clone from a mirror first, then run the same installer:
+> ```bash
+> git clone https://gitee.com/zdking_project/java-development-skill.git   # Gitee (China)
+> # or: https://cnb.cool/zdking/java-development-skill                    # cnb.cool
+> cd java-development-skill && ./install.sh
+> ```
 
-Each tool discovers skills in a different folder under `$HOME`:
+> **Windows users**: run the installer in **Git Bash** or **WSL** (not cmd.exe / PowerShell). Git Bash comes with Git for Windows. If the symlink step falls back to a copy, that's fine — re-run `git pull && ./install.sh --force` to update.
 
-| Tool | Skill path | Install command |
-|------|-----------|-----------------|
+### Option 2 — Manual install for one tool
+
+If you prefer not to run a script, clone the repo directly into your tool's skill directory. Each tool looks in a different folder under your home:
+
+| Tool | Skill path | Command |
+|------|-----------|---------|
 | **Claude Code** | `~/.claude/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.claude/skills/java-development` |
 | **OpenAI Codex** | `~/.codex/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.codex/skills/java-development` |
 | **OpenCode** | `~/.opencode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.opencode/skills/java-development` |
 | **ZCode** | `~/.zcode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.zcode/skills/java-development` |
 
-> **Tip:** if a Git host is slow from your region, swap the URL for a mirror:
-> - Gitee: `https://gitee.com/zdking_project/java-development-skill.git`
-> - cnb.cool: `https://cnb.cool/zdking/java-development-skill`
+That single `git clone` is the whole install. No build step, no config edit.
 
-### Project-level install (this repo only)
+### Option 3 — Project-level install (only one project)
 
-Want the skill active only inside one Java project? Clone into the project's local tool directory:
+Want the skill active inside one Java project, not globally? Clone into the project's local tool directory:
 
 ```bash
-# inside your Java project, pick your tool:
+# inside your Java project root, pick your tool:
 git clone https://github.com/zander-zyx/java-development-skill.git .claude/skills/java-development
-# or: .codex/skills/, .zcode/skills/, .opencode/skills/
+# or:  .codex/skills/java-development
+#      .zcode/skills/java-development
+#      .opencode/skills/java-development
 ```
 
-### Just read the rules
+Project-level skills take priority over user-level, so this also overrides a global install for that project only.
 
-The `*.md` files are plain Markdown — read them directly as a refresher, or copy individual rules into your team wiki. No tool required.
+### Option 4 — Read the rules without any tool
 
-### Verify it works
+The `*.md` files are plain Markdown. Browse them on GitHub/Gitee/cnb, or clone and read locally. Copy individual rules into your team wiki. No AI tool required.
 
-After installing, restart your tool session and ask any Java / Spring Boot question. The skill auto-triggers from the `description` keywords (`@RestController`, `MyBatis-Plus`, `OOM`, `@SpringBootTest`, etc.) — you don't need to say "Java" explicitly. See [`examples/usage-examples.md`](examples/usage-examples.md) (or [中文版](examples/usage-examples.zh.md)) for real prompts and what the skill produces.
+### Verify the install worked
 
-## 💡 Usage Examples
+**30-second check** — open a fresh session in your tool (the skill loads at startup, so restart if it was already running) and paste:
 
-Once installed, your agent picks the right rule automatically based on context. You don't need to memorize file names.
+```
+How do I prevent N+1 queries in JPA?
+```
 
-| You say... | Skill loads... |
-|-----------|----------------|
-| *"Write a JPA repository for Order, watch out for N+1"* | `sb-jpa-repository.md` (N+1 → JOIN FETCH / EntityGraph) |
-| *"My MyBatis-Plus pagination returns all rows"* | `sb-mybatis-plus.md` (forgot `PaginationInnerInterceptor`) |
+You should get an answer that specifically mentions **JOIN FETCH / EntityGraph** and the `open-in-view = false` setting — those come from `sb-jpa-repository.md`. If the answer is generic ("use lazy loading…"), the skill didn't load; see [Troubleshooting](#-troubleshooting) below.
+
+## 💡 How to use
+
+You don't "open" or "invoke" the skill. Once installed, it works **transparently** in the background of every Java-related conversation.
+
+### The mental model
+
+```
+You type a Java question
+        │
+        ▼
+The tool reads SKILL.md's description (always in context)
+        │
+        ├── keywords match (@RestController, OOM, MyBatis-Plus, …)
+        │     └── tool loads the specific rule file on demand
+        │           └── answer follows that rule's conventions
+        │
+        └── no match → tool answers with its general knowledge (skill stays silent)
+```
+
+You never type a file name. The skill decides what to load based on what you said.
+
+### Where to use it
+
+- **Inside your Java project** — `cd` into your project, launch the tool there. It sees your `pom.xml` / source files *and* has the skill loaded. Best results.
+- **In any folder** — the skill is user-global (after Option 1/2). You can ask Java questions even outside a project; the skill still applies, the tool just can't see your code.
+
+### What to ask — trigger examples
+
+The `description` frontmatter in `SKILL.md` enumerates ~50 trigger keywords. Some natural prompts that fire the skill:
+
+| You say… | Skill loads… |
+|----------|--------------|
+| *"Write a JPA repository for Order, watch out for N+1"* | `sb-jpa-repository.md` (→ JOIN FETCH / EntityGraph) |
+| *"My MyBatis-Plus pagination returns all rows"* | `sb-mybatis-plus.md` (→ forgot `PaginationInnerInterceptor`) |
 | *"Review this class for thread safety"* | `cr-concurrency.md` + `cr-resource-leak.md` |
-| *"Set up Testcontainers with MySQL"* | `test-testcontainers.md` (`@ServiceConnection`) |
-| *"Prod is OOMing, how do I find the leak?"* | `jvm-oom-analysis.md` (heap dump + MAT dominator tree) |
-| *"Migrating from Spring Boot 2.7 to 3"* | `sb-migration-2-to-3.md` (6 breaking changes checklist) |
+| *"Set up Testcontainers with MySQL"* | `test-testcontainers.md` (→ `@ServiceConnection`) |
+| *"Prod is OOMing, how do I find the leak?"* | `jvm-oom-analysis.md` (→ heap dump + MAT) |
+| *"Migrating from Spring Boot 2.7 to 3"* | `sb-migration-2-to-3.md` (→ 6 breaking changes) |
+| *"帮我写个 OrderService，保存订单+调支付"* | `sb-dependency-injection.md` + `sb-mybatis-plus.md` (中文 also triggers) |
 
-The `SKILL.md` `description` frontmatter enumerates trigger keywords (`@RestController`, `@SpringBootTest`, `OOM`, `GC`, `N+1`, `MyBatis-Plus`, etc.) so the skill triggers reliably even when you don't say "Java" explicitly.
+See [`examples/usage-examples.md`](examples/usage-examples.md) (or [中文版](examples/usage-examples.zh.md)) for full prompts with the actual output each produces.
+
+### Force-loading when auto-trigger misses
+
+If a prompt should have triggered the skill but didn't (rare — usually means an unusual phrasing), force it:
+
+| Tool | Command |
+|------|---------|
+| **Claude Code** | `/skill java-development` then your prompt (or it auto-loads on next Java mention) |
+| **Codex** | `/skill java-development <your prompt>` |
+| **ZCode** | `/skill java-development <your prompt>` |
+| **OpenCode** | the `skill` tool is invoked by the agent automatically; rephrase with a keyword from the description |
+
+### Keeping the skill up to date
+
+The skill evolves. To pull new rules and rule updates:
+
+```bash
+cd ~/.claude/skills/java-development    # or wherever you cloned it
+git pull
+```
+
+If you used the installer (which symlinks), `git pull` in the original clone updates **all** tools at once — they share the same source.
+
+## 🛠 Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| Skill doesn't trigger on a Java question | Tool session was running before install | Restart the tool (skill loads at startup) |
+| `./install.sh: Permission denied` | Script not executable | `chmod +x install.sh` then retry |
+| Installer reports "No AI tool config directories found" | None of `.claude` / `.codex` / `.opencode` / `.zcode` exist yet | Install a tool first (see [Prerequisites](#prerequisites)), or run `./install.sh --force` to create the paths |
+| Windows: `ln: failed to create symbolic link` | No symlink privilege | The installer auto-falls back to a copy; or run Git Bash **as Administrator** |
+| `git pull` says "detached HEAD" after installer | You're in the wrong directory | The installer symlinks; `cd` into the original clone (the symlink target), not the link, to pull |
+| Codex loads the skill but ignores rules | Codex uses `AGENTS.md` for *always-on* instructions, `SKILL.md` for *on-demand* | This is expected — the skill is on-demand by design. Rephrase with a trigger keyword |
+| Updated the repo but tool still uses old rules | Tool caches skills per session | Restart the tool session |
+
+If something else breaks, [open an issue](https://github.com/zander-zyx/java-development-skill/issues) with the tool name, OS, and the exact command + output.
 
 ## 🎨 Code Style Baseline
 
