@@ -5,6 +5,9 @@
 [![MyBatis-Plus](https://img.shields.io/badge/MyBatis--Plus-3.5%2B-red.svg)](https://baomidou.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](#-许可证)
 [![Rules](https://img.shields.io/badge/rules-26-success.svg)](#-规则索引)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-兼容-7c3aed.svg)](#-安装)
+[![Codex](https://img.shields.io/badge/OpenAI%20Codex-兼容-412991.svg)](#-安装)
+[![OpenCode](https://img.shields.io/badge/OpenCode-兼容-ff7f0e.svg)](#-安装)
 
 [English](./README.md) | **中文**
 
@@ -80,37 +83,63 @@ java-development-skill/
     ├── pom-spring-boot-2.xml           SB2 pom（javax、旧项目维护）
     ├── controller-service-test.java    Controller + Service + Mapper + Test 骨架
     └── application.yml.template        多环境配置（dev/prod profile）
+
+examples/                  # 💡 实际效果演示
+    ├── usage-examples.md              真实 prompt + skill 的输出（英文）
+    └── usage-examples.zh.md           中文版
 ```
 
 ⭐ = 影响最大的规则，建议优先阅读。
 
-## 🚀 快速开始
+## 🚀 安装
 
-### 方式一：作为 ZCode / Claude Code 技能安装
+本 skill 兼容**四款 AI 编码工具**。`SKILL.md` 遵循新兴的 [agentskills.io](https://agentskills.io) 标准 —— 同一份内容能在所有工具里加载，只是每个工具查找的目录不同。
 
-ZCode 在以下目录发现技能（优先级从高到低）：
-
-- `<项目>/.zcode/skills/<名称>/SKILL.md`
-- `~/.zcode/skills/<名称>/SKILL.md`         ← 个人使用推荐
-- `~/.agents/skills/<名称>/SKILL.md`
+### 一键安装脚本（推荐）
 
 ```bash
-# 克隆到用户级技能目录
-git clone https://github.com/zander-zyx/java-development-skill.git ~/.zcode/skills/java-development
+git clone https://github.com/zander-zyx/java-development-skill.git
+cd java-development-skill
+./install.sh
 ```
 
-完成。下次你向 Agent 提问 Java / Spring Boot 相关问题时，它会自动加载相关规则。
+脚本会自动检测你装了哪些工具（Claude Code、Codex、OpenCode、ZCode），并把 skill 软链接到各自的发现目录。可选参数：
 
-### 方式二：项目级安装（仅当前仓库生效）
+- `./install.sh --force` —— 覆盖已有安装
+- `./install.sh --uninstall` —— 从所有工具移除
+
+### 按工具手动安装
+
+每个工具在 `$HOME` 下查找的目录不同：
+
+| 工具 | skill 路径 | 安装命令 |
+|------|-----------|----------|
+| **Claude Code** | `~/.claude/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.claude/skills/java-development` |
+| **OpenAI Codex** | `~/.codex/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.codex/skills/java-development` |
+| **OpenCode** | `~/.opencode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.opencode/skills/java-development` |
+| **ZCode** | `~/.zcode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.zcode/skills/java-development` |
+
+> **小贴士：** 如果某个 Git 源在你所在区域慢，可换镜像：
+> - Gitee：`https://gitee.com/zdking_project/java-development-skill.git`
+> - cnb.cool：`https://cnb.cool/zdking/java-development-skill`
+
+### 项目级安装（仅当前项目生效）
+
+只想让 skill 在某个 Java 项目里生效？克隆到该项目对应工具的本地目录：
 
 ```bash
-# 在你的 Java 项目内
-git clone https://github.com/zander-zyx/java-development-skill.git .zcode/skills/java-development
+# 在你的 Java 项目里，按你的工具选其一：
+git clone https://github.com/zander-zyx/java-development-skill.git .claude/skills/java-development
+# 或：.codex/skills/、.zcode/skills/、.opencode/skills/
 ```
 
-### 方式三：当作文档阅读
+### 当作文档阅读
 
-`*.md` 文件都是纯 Markdown —— 可以直接当作复习资料阅读，或把单条规则复制到团队 Wiki。
+`*.md` 文件都是纯 Markdown —— 可以直接当复习资料阅读，或把单条规则复制到团队 Wiki，不需要任何工具。
+
+### 验证是否生效
+
+安装后重启工具会话，随便问一个 Java / Spring Boot 问题。Skill 会通过 `description` 关键词（`@RestController`、`MyBatis-Plus`、`OOM`、`@SpringBootTest` 等）自动触发 —— 你不需要明说"Java"。实际效果见 [`examples/usage-examples.zh.md`](examples/usage-examples.zh.md)（或 [英文版](examples/usage-examples.md)）。
 
 ## 💡 使用示例
 

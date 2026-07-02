@@ -5,6 +5,9 @@
 [![MyBatis-Plus](https://img.shields.io/badge/MyBatis--Plus-3.5%2B-red.svg)](https://baomidou.com/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 [![Rules](https://img.shields.io/badge/rules-26-success.svg)](#rule-index)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-7c3aed.svg)](#-install)
+[![Codex](https://img.shields.io/badge/OpenAI%20Codex-compatible-412991.svg)](#-install)
+[![OpenCode](https://img.shields.io/badge/OpenCode-compatible-ff7f0e.svg)](#-install)
 
 **English** | [中文](./README_zh.md)
 
@@ -37,8 +40,11 @@ This mirrors how a human engineer works: you don't re-read all of "Effective Jav
 ```
 java-development-skill/
 ├── SKILL.md                # Router: decision tree + rule index (always loaded)
-├── README.md               # This file
+├── README.md               # This file (English)
+├── README_zh.md            # Chinese edition
 ├── metadata.json           # Version metadata
+├── LICENSE                 # MIT
+├── install.sh              # Cross-tool one-click installer
 │
 ├── spring-boot/            # 🌱 Domain A — Spring Boot Development (9 rules)
 │   ├── sb-dependency-injection.md      Constructor injection + Lombok strategy
@@ -79,37 +85,63 @@ java-development-skill/
     ├── pom-spring-boot-2.xml           SB2 pom (javax, legacy maintenance)
     ├── controller-service-test.java    Controller + Service + Mapper + Test skeleton
     └── application.yml.template        Multi-environment config (dev/prod profiles)
+
+examples/                  # 💡 See it in action
+    ├── usage-examples.md              Real prompts + what the skill produces (EN)
+    └── usage-examples.zh.md           中文版
 ```
 
 ⭐ = highest-impact rules, read these first.
 
-## 🚀 Quick Start
+## 🚀 Install
 
-### Option 1: Install as a ZCode / Claude Code skill
+This skill works across **four AI coding tools**. The `SKILL.md` format follows the emerging [agentskills.io](https://agentskills.io) standard — the same content loads in all of them. Each tool just looks in its own directory.
 
-ZCode discovers skills in these directories (highest priority first):
-
-- `<project>/.zcode/skills/<name>/SKILL.md`
-- `~/.zcode/skills/<name>/SKILL.md`         ← recommended for personal use
-- `~/.agents/skills/<name>/SKILL.md`
+### One-click installer (recommended)
 
 ```bash
-# Clone into your user-level skills directory
-git clone https://github.com/zander-zyx/java-development-skill.git ~/.zcode/skills/java-development
+git clone https://github.com/zander-zyx/java-development-skill.git
+cd java-development-skill
+./install.sh
 ```
 
-That's it. The next time you ask your agent about Java / Spring Boot, it auto-loads the relevant rules.
+The installer detects which tools you have installed (Claude Code, Codex, OpenCode, ZCode) and symlinks the skill into each one's discovery directory. Options:
 
-### Option 2: Project-level (this repo only)
+- `./install.sh --force` — overwrite an existing install
+- `./install.sh --uninstall` — remove from all tools
+
+### Manual install per tool
+
+Each tool discovers skills in a different folder under `$HOME`:
+
+| Tool | Skill path | Install command |
+|------|-----------|-----------------|
+| **Claude Code** | `~/.claude/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.claude/skills/java-development` |
+| **OpenAI Codex** | `~/.codex/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.codex/skills/java-development` |
+| **OpenCode** | `~/.opencode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.opencode/skills/java-development` |
+| **ZCode** | `~/.zcode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.zcode/skills/java-development` |
+
+> **Tip:** if a Git host is slow from your region, swap the URL for a mirror:
+> - Gitee: `https://gitee.com/zdking_project/java-development-skill.git`
+> - cnb.cool: `https://cnb.cool/zdking/java-development-skill`
+
+### Project-level install (this repo only)
+
+Want the skill active only inside one Java project? Clone into the project's local tool directory:
 
 ```bash
-# Inside your Java project
-git clone https://github.com/zander-zyx/java-development-skill.git .zcode/skills/java-development
+# inside your Java project, pick your tool:
+git clone https://github.com/zander-zyx/java-development-skill.git .claude/skills/java-development
+# or: .codex/skills/, .zcode/skills/, .opencode/skills/
 ```
 
-### Option 3: Just read the rules
+### Just read the rules
 
-The `*.md` files are plain markdown — read them directly as a refresher, or copy individual rules into your team's wiki.
+The `*.md` files are plain Markdown — read them directly as a refresher, or copy individual rules into your team wiki. No tool required.
+
+### Verify it works
+
+After installing, restart your tool session and ask any Java / Spring Boot question. The skill auto-triggers from the `description` keywords (`@RestController`, `MyBatis-Plus`, `OOM`, `@SpringBootTest`, etc.) — you don't need to say "Java" explicitly. See [`examples/usage-examples.md`](examples/usage-examples.md) (or [中文版](examples/usage-examples.zh.md)) for real prompts and what the skill produces.
 
 ## 💡 Usage Examples
 
