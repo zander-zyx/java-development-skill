@@ -201,6 +201,67 @@ git clone https://github.com/zander-zyx/java-development-skill.git .zcode/skills
 
 </details>
 
+## 📦 Git 命令行入门
+
+给协作者的简易命令行教程，涵盖全局设置、创建新仓库、推送已有仓库。
+
+### 全局设置（每台电脑一次）
+
+```bash
+git config --global user.name "Zander"
+git config --global user.email "zd@zdking.com"
+```
+
+### 创建新仓库
+
+```bash
+mkdir java-development-skill
+cd java-development-skill
+git init
+touch README.md
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/zander-zyx/java-development-skill.git
+git push -u origin main
+```
+
+### 推送已有仓库
+
+```bash
+cd existing_git_repo
+git remote add origin https://github.com/zander-zyx/java-development-skill.git
+git branch -M main
+git push -u origin main
+```
+
+### 多远程镜像推送（GitHub / cnb.cool / Gitee）
+
+本仓库在三个平台同步镜像。要一次推送到全部三个平台：
+
+```bash
+# 一次性：添加额外的远程
+git remote add cnb   https://cnb.cool/zdking/java-development-skill
+git remote add gitee https://gitee.com/zdking_project/java-development-skill.git
+
+# 创建一个聚合推送地址，自动扇出到三个平台
+git remote set-url --add --push origin https://github.com/zander-zyx/java-development-skill.git
+git remote set-url --add --push origin https://cnb.cool/zdking/java-development-skill
+git remote set-url --add --push origin https://gitee.com/zdking_project/java-development-skill.git
+
+# 现在 `git push` 会同时推送到三个平台
+git push
+```
+
+或者分别推送各远程：
+
+```bash
+git push origin main   # GitHub
+git push cnb    main   # cnb.cool
+git push gitee  main   # Gitee
+```
+
+> **注意**：如果你重写了历史（比如 amend、rebase），需要用 `git push --force-with-lease` 更新每个远程。
+
 ## 🤝 如何贡献
 
 这是个人技能包，但欢迎 PR：

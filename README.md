@@ -200,6 +200,67 @@ Every example in this skill follows the same conventions, so generated code is c
 
 </details>
 
+## 📦 Git Quick Start
+
+A minimal command-line primer for collaborators. Covers global setup, creating a new repo, and pushing an existing repo.
+
+### Global setup (once per machine)
+
+```bash
+git config --global user.name "Zander"
+git config --global user.email "zd@zdking.com"
+```
+
+### Create a new repository
+
+```bash
+mkdir java-development-skill
+cd java-development-skill
+git init
+touch README.md
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/zander-zyx/java-development-skill.git
+git push -u origin main
+```
+
+### Push an existing repository
+
+```bash
+cd existing_git_repo
+git remote add origin https://github.com/zander-zyx/java-development-skill.git
+git branch -M main
+git push -u origin main
+```
+
+### Mirror to multiple remotes (GitHub / cnb.cool / Gitee)
+
+This repo is mirrored across three hosts. To push to all of them in one command:
+
+```bash
+# one-time: add the extra remotes
+git remote add cnb   https://cnb.cool/zdking/java-development-skill
+git remote add gitee https://gitee.com/zdking_project/java-development-skill.git
+
+# create a single push URL that fans out to all three
+git remote set-url --add --push origin https://github.com/zander-zyx/java-development-skill.git
+git remote set-url --add --push origin https://cnb.cool/zdking/java-development-skill
+git remote set-url --add --push origin https://gitee.com/zdking_project/java-development-skill.git
+
+# now `git push` hits all three at once
+git push
+```
+
+Or push remotes individually:
+
+```bash
+git push origin main   # GitHub
+git push cnb    main   # cnb.cool
+git push gitee  main   # Gitee
+```
+
+> **Note**: if you rewrite history (e.g. amend, rebase), use `git push --force-with-lease` on each remote to update.
+
 ## 🤝 How to Contribute
 
 This is a personal skill but PRs are welcome:
