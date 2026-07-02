@@ -405,11 +405,15 @@ Every example in this skill follows the same conventions, so generated code is c
 
 ## 🤝 How to Contribute
 
-This is a personal skill but PRs are welcome:
+This is a personal skill but PRs are welcome. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for the full guide (rule file structure, code style, commit conventions, in English and 中文).
+
+Quick summary:
 
 1. **Typo / clarification** — direct PR, no discussion needed.
 2. **New rule** — open an issue first to discuss scope. Follow the existing file structure: frontmatter (`title` / `impact` / `tags` / `description`) + sections (`Why it matters` / `Correct` / `Incorrect` / `Context`).
 3. **Updated framework behavior** — Java/Spring evolves fast. If a rule is outdated for the current version, PR the fix and note the version in `Context`.
+
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating you agree to abide by its terms.
 
 See `metadata.json` for the version this skill was authored against.
 

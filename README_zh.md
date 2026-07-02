@@ -406,11 +406,15 @@ git pull
 
 ## 🤝 如何贡献
 
-这是个人技能包，但欢迎 PR：
+这是个人技能包，但欢迎 PR。完整指南见 **[CONTRIBUTING.md](CONTRIBUTING.md)**（规则文件结构、代码风格、commit 规范，中英双语）。
+
+快速摘要：
 
 1. **错别字 / 表述优化** —— 直接提 PR，无需讨论。
 2. **新增规则** —— 先开 issue 讨论范围。遵循现有文件结构：frontmatter（`title` / `impact` / `tags` / `description`）+ 章节（`Why it matters` / `Correct` / `Incorrect` / `Context`）。
 3. **框架行为更新** —— Java/Spring 演进很快。如果某条规则在当前版本已过时，提 PR 修正并在 `Context` 里注明版本。
+
+本项目遵循 [Contributor Covenant 行为准则](CODE_OF_CONDUCT.md)。参与即表示你同意遵守其条款。
 
 技能编写时对齐的版本见 `metadata.json`。
 
