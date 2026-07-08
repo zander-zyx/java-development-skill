@@ -11,7 +11,7 @@
 
 **English** | [中文](./README_zh.md)
 
-> A unified **AI Agent Skill** for Java + Spring Boot engineering — development conventions, code review, testing, and JVM troubleshooting. Designed for ZCode / Claude Code / any agent that supports the SKILL.md spec.
+> A unified **AI Agent Skill** for Java + Spring Boot engineering — development conventions, code review, testing, and JVM troubleshooting. Designed for Claude Code / OpenAI Codex / OpenCode / ZCode, and any agent that supports the SKILL.md spec.
 
 ---
 
@@ -73,11 +73,12 @@ java-development-skill/
 ├── SKILL.md                # Router: loading budget + route table (loaded after trigger)
 ├── README.md               # This file (English)
 ├── README_zh.md            # Chinese edition
-├── AGENTS.md               # Always-on engineering discipline for Codex-style agents
+├── AGENTS.md               # Always-on engineering discipline for Codex/OpenCode-style agents
+├── CLAUDE.md               # Always-on engineering discipline for Claude Code
 ├── metadata.json           # Version metadata
 ├── LICENSE                 # MIT
 ├── install.sh              # Cross-tool one-click installer
-├── agents/openai.yaml      # Codex UI metadata
+├── agents/openai.yaml      # OpenAI/Codex UI metadata
 │
 ├── spring-boot/            # 🌱 Domain A — Spring Boot Development (9 rules)
 │   ├── sb-dependency-injection.md      Constructor injection + Lombok strategy
@@ -133,6 +134,17 @@ java-development-skill/
 ## 🚀 Install
 
 This skill works across **four AI coding tools**. The `SKILL.md` format follows the emerging [agentskills.io](https://agentskills.io) standard — the same content loads in all of them. Each tool just looks in its own directory.
+
+### Compatibility Matrix
+
+| Agent/tool | Skill entry | Always-on instructions | UI metadata | Install path |
+|------------|-------------|------------------------|-------------|--------------|
+| Claude Code | `SKILL.md` | `CLAUDE.md` | frontmatter | `~/.claude/skills/java-development` |
+| OpenAI Codex | `SKILL.md` | `AGENTS.md` | `agents/openai.yaml` | `~/.codex/skills/java-development` |
+| OpenCode | `SKILL.md` | `AGENTS.md` | frontmatter | `~/.config/opencode/skills/java-development` |
+| ZCode | `SKILL.md` | `SKILL.md` defaults | frontmatter | `~/.zcode/skills/java-development` |
+
+`SKILL.md` is the shared source of truth for Java routing. `AGENTS.md` and `CLAUDE.md` only hold tool-specific always-on engineering discipline so Codex/OpenCode and Claude Code behave consistently before the skill is triggered.
 
 ### Prerequisites
 
@@ -207,7 +219,7 @@ The agent will `git clone` the repo into its own skill folder, verify the `SKILL
 |------|--------------------------|
 | Claude Code | `Clone https://github.com/zander-zyx/java-development-skill into ~/.claude/skills/java-development and confirm SKILL.md is there.` |
 | Codex | `Clone https://github.com/zander-zyx/java-development-skill into ~/.codex/skills/java-development and confirm SKILL.md is there.` |
-| OpenCode | `Clone https://github.com/zander-zyx/java-development-skill into ~/.opencode/skills/java-development and confirm SKILL.md is there.` |
+| OpenCode | `Clone https://github.com/zander-zyx/java-development-skill into ~/.config/opencode/skills/java-development and confirm SKILL.md is there.` |
 | ZCode | `Clone https://github.com/zander-zyx/java-development-skill into ~/.zcode/skills/java-development and confirm SKILL.md is there.` |
 
 > If the GitHub URL is slow, tell the agent the mirror instead: `https://gitee.com/zdking_project/java-development-skill.git` (China) or `https://cnb.cool/zdking/java-development-skill`.
@@ -220,7 +232,7 @@ If you prefer not to run a script, clone the repo directly into your tool's skil
 |------|-----------|---------|
 | **Claude Code** | `~/.claude/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.claude/skills/java-development` |
 | **OpenAI Codex** | `~/.codex/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.codex/skills/java-development` |
-| **OpenCode** | `~/.opencode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.opencode/skills/java-development` |
+| **OpenCode** | `~/.config/opencode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.config/opencode/skills/java-development` |
 | **ZCode** | `~/.zcode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.zcode/skills/java-development` |
 
 That single `git clone` is the whole install. No build step, no config edit.
@@ -234,7 +246,7 @@ Want the skill active inside one Java project, not globally? Clone into the proj
 git clone https://github.com/zander-zyx/java-development-skill.git .claude/skills/java-development
 # or:  .codex/skills/java-development
 #      .zcode/skills/java-development
-#      .opencode/skills/java-development
+#      .config/opencode/skills/java-development
 ```
 
 Project-level skills take priority over user-level, so this also overrides a global install for that project only.
@@ -305,7 +317,7 @@ If a prompt should have triggered the skill but didn't (rare — usually means a
 | **Claude Code** | `/skill java-development` then your prompt (or it auto-loads on next Java mention) |
 | **Codex** | `/skill java-development <your prompt>` |
 | **ZCode** | `/skill java-development <your prompt>` |
-| **OpenCode** | the `skill` tool is invoked by the agent automatically; rephrase with a keyword from the description |
+| **OpenCode** | installed skills are loaded by trigger metadata; rephrase with a keyword from the description |
 
 ### Keeping the skill up to date
 
@@ -324,10 +336,10 @@ If you used the installer (which symlinks), `git pull` in the original clone upd
 |---------|-------------|-----|
 | Skill doesn't trigger on a Java question | Tool session was running before install | Restart the tool (skill loads at startup) |
 | `./install.sh: Permission denied` | Script not executable | `chmod +x install.sh` then retry |
-| Installer reports "No AI tool config directories found" | None of `.claude` / `.codex` / `.opencode` / `.zcode` exist yet | Install a tool first (see [Prerequisites](#prerequisites)), or run `./install.sh --force` to create the paths |
+| Installer reports "No AI tool config directories found" | None of `.claude` / `.codex` / `.config/opencode` / `.opencode` / `.zcode` exist yet | Install a tool first (see [Prerequisites](#prerequisites)), or run `./install.sh --force` to create the paths |
 | Windows: `ln: failed to create symbolic link` | No symlink privilege | The installer auto-falls back to a copy; or run Git Bash **as Administrator** |
 | `git pull` says "detached HEAD" after installer | You're in the wrong directory | The installer symlinks; `cd` into the original clone (the symlink target), not the link, to pull |
-| Codex loads the skill but ignores rules | Codex uses `AGENTS.md` for *always-on* instructions, `SKILL.md` for *on-demand* | This is expected — the skill is on-demand by design. Rephrase with a trigger keyword |
+| Codex/OpenCode loads the skill but ignores rules | These tools use `AGENTS.md` for always-on instructions and `SKILL.md` for on-demand skill routing | This is expected — rephrase with a Java/Spring/JVM trigger keyword |
 | Updated the repo but tool still uses old rules | Tool caches skills per session | Restart the tool session |
 
 If something else breaks, [open an issue](https://github.com/zander-zyx/java-development-skill/issues) with the tool name, OS, and the exact command + output.

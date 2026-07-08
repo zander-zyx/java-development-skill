@@ -11,7 +11,7 @@
 
 [English](./README.md) | **中文**
 
-> 一个统一的 **AI Agent 技能包**，覆盖 Java + Spring Boot 工程的方方面面 —— 开发规范、代码审查、测试、JVM 排障。适用于 ZCode / Claude Code / 任何支持 SKILL.md 规范的 Agent。
+> 一个统一的 **AI Agent 技能包**，覆盖 Java + Spring Boot 工程的方方面面 —— 开发规范、代码审查、测试、JVM 排障。适用于 Claude Code / OpenAI Codex / OpenCode / ZCode，以及任何支持 SKILL.md 规范的 Agent。
 
 ---
 
@@ -80,9 +80,10 @@ java-development-skill/
 ├── SKILL.md                # 路由文件：加载预算 + 路由表（触发后加载）
 ├── README.md               # 英文说明
 ├── README_zh.md            # 中文说明（本文件）
-├── AGENTS.md               # Codex 类 Agent 的常驻工程纪律
+├── AGENTS.md               # Codex/OpenCode 类 Agent 的常驻工程纪律
+├── CLAUDE.md               # Claude Code 的常驻工程纪律
 ├── metadata.json           # 版本元数据
-├── agents/openai.yaml      # Codex UI 元数据
+├── agents/openai.yaml      # OpenAI/Codex UI 元数据
 │
 ├── spring-boot/            # 🌱 方向 A —— Spring Boot 开发（9 条规则）
 │   ├── sb-dependency-injection.md      构造器注入 + Lombok 策略
@@ -134,6 +135,17 @@ examples/                  # 💡 实际效果演示
 ## 🚀 安装
 
 本 skill 兼容**四款 AI 编码工具**。`SKILL.md` 遵循新兴的 [agentskills.io](https://agentskills.io) 标准 —— 同一份内容能在所有工具里加载，只是每个工具查找的目录不同。
+
+### 适配矩阵
+
+| Agent/工具 | Skill 入口 | 常驻指令 | UI 元数据 | 安装路径 |
+|------------|------------|----------|-----------|----------|
+| Claude Code | `SKILL.md` | `CLAUDE.md` | frontmatter | `~/.claude/skills/java-development` |
+| OpenAI Codex | `SKILL.md` | `AGENTS.md` | `agents/openai.yaml` | `~/.codex/skills/java-development` |
+| OpenCode | `SKILL.md` | `AGENTS.md` | frontmatter | `~/.config/opencode/skills/java-development` |
+| ZCode | `SKILL.md` | `SKILL.md` 默认约定 | frontmatter | `~/.zcode/skills/java-development` |
+
+`SKILL.md` 是 Java 路由的共同事实源。`AGENTS.md` 和 `CLAUDE.md` 只承载工具专属的常驻工程纪律，让 Codex/OpenCode 和 Claude Code 在 skill 触发前也尽量保持一致。
 
 ### 前置条件
 
@@ -208,7 +220,7 @@ Agent 会自动 `git clone` 到它自己的 skill 目录、确认 `SKILL.md` 就
 |------|-------------------|
 | Claude Code | `把 https://github.com/zander-zyx/java-development-skill clone 到 ~/.claude/skills/java-development，确认 SKILL.md 在。` |
 | Codex | `把 https://github.com/zander-zyx/java-development-skill clone 到 ~/.codex/skills/java-development，确认 SKILL.md 在。` |
-| OpenCode | `把 https://github.com/zander-zyx/java-development-skill clone 到 ~/.opencode/skills/java-development，确认 SKILL.md 在。` |
+| OpenCode | `把 https://github.com/zander-zyx/java-development-skill clone 到 ~/.config/opencode/skills/java-development，确认 SKILL.md 在。` |
 | ZCode | `把 https://github.com/zander-zyx/java-development-skill clone 到 ~/.zcode/skills/java-development，确认 SKILL.md 在。` |
 
 > 如果 GitHub 慢，告诉 Agent 用镜像：`https://gitee.com/zdking_project/java-development-skill.git`（国内）或 `https://cnb.cool/zdking/java-development-skill`。
@@ -221,7 +233,7 @@ Agent 会自动 `git clone` 到它自己的 skill 目录、确认 `SKILL.md` 就
 |------|-----------|------|
 | **Claude Code** | `~/.claude/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.claude/skills/java-development` |
 | **OpenAI Codex** | `~/.codex/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.codex/skills/java-development` |
-| **OpenCode** | `~/.opencode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.opencode/skills/java-development` |
+| **OpenCode** | `~/.config/opencode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.config/opencode/skills/java-development` |
 | **ZCode** | `~/.zcode/skills/java-development/` | `git clone https://github.com/zander-zyx/java-development-skill.git ~/.zcode/skills/java-development` |
 
 这一条 `git clone` 就是完整安装，没有构建步骤，不用改配置。
@@ -235,7 +247,7 @@ Agent 会自动 `git clone` 到它自己的 skill 目录、确认 `SKILL.md` 就
 git clone https://github.com/zander-zyx/java-development-skill.git .claude/skills/java-development
 # 或：  .codex/skills/java-development
 #       .zcode/skills/java-development
-#       .opencode/skills/java-development
+#       .config/opencode/skills/java-development
 ```
 
 项目级 skill 优先级高于用户级，所以这种方式还能针对单个项目覆盖全局安装。
@@ -306,7 +318,7 @@ JPA 里怎么避免 N+1 查询？
 | **Claude Code** | `/skill java-development` 然后输入你的 prompt（或下次提到 Java 时自动加载） |
 | **Codex** | `/skill java-development <你的 prompt>` |
 | **ZCode** | `/skill java-development <你的 prompt>` |
-| **OpenCode** | `skill` 工具由 Agent 自动调用；换个带 description 关键词的说法 |
+| **OpenCode** | 已安装的 skill 由触发元数据加载；换个带 description 关键词的说法 |
 
 ### 保持 skill 更新
 
@@ -325,10 +337,10 @@ git pull
 |------|---------|------|
 | 问 Java 问题 skill 没触发 | 安装时工具会话已经开着 | 重启工具（skill 是启动时加载的） |
 | `./install.sh: Permission denied` | 脚本没有执行权限 | `chmod +x install.sh` 后重试 |
-| 脚本报 "No AI tool config directories found" | `.claude` / `.codex` / `.opencode` / `.zcode` 都不存在 | 先装一个工具（见[前置条件](#前置条件)），或用 `./install.sh --force` 创建路径 |
+| 脚本报 "No AI tool config directories found" | `.claude` / `.codex` / `.config/opencode` / `.opencode` / `.zcode` 都不存在 | 先装一个工具（见[前置条件](#前置条件)），或用 `./install.sh --force` 创建路径 |
 | Windows：`ln: failed to create symbolic link` | 没有软链接权限 | 脚本会自动回退到复制；或用管理员身份运行 Git Bash |
 | `git pull` 提示 "detached HEAD" | 进错目录了 | 安装脚本用的是软链接；`cd` 到原始 clone 目录（软链接指向的目标）去 pull，而不是链接本身 |
-| Codex 加载了 skill 但不遵循规则 | Codex 用 `AGENTS.md` 做*常驻*指令，`SKILL.md` 是*按需*的 | 这是设计如此 —— skill 本就是按需的。换个带触发关键词的说法 |
+| Codex/OpenCode 加载了 skill 但不遵循规则 | 这类工具用 `AGENTS.md` 做常驻指令，用 `SKILL.md` 做按需路由 | 这是设计如此；换个 Java/Spring/JVM 触发关键词 |
 | 更新了仓库但工具还用旧规则 | 工具按会话缓存 skill | 重启工具会话 |
 
 如果遇到其他问题，[提个 issue](https://github.com/zander-zyx/java-development-skill/issues)，附上工具名、操作系统、以及具体命令和输出。

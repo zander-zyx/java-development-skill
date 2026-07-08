@@ -38,7 +38,8 @@ done
 declare -a TARGETS=(
   "$HOME/.claude/skills"     # Claude Code
   "$HOME/.codex/skills"      # OpenAI Codex CLI
-  "$HOME/.opencode/skills"   # OpenCode (fallback; also respects repo-local)
+  "$HOME/.config/opencode/skills" # OpenCode global config
+  "$HOME/.opencode/skills"   # OpenCode legacy/fallback path
   "$HOME/.zcode/skills"      # ZCode
   "$HOME/.agents/skills"     # generic cross-tool location
 )
