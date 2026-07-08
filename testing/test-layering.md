@@ -60,7 +60,7 @@ class OrderServiceTest {
 }
 ```
 
-See `test-junit5.md` for the JUnit 5 patterns, `test-mockito.md` for stubbing.
+See `testing/test-junit5.md` for the JUnit 5 patterns, `testing/test-mockito.md` for stubbing.
 
 ### Slice tests — partial Spring context
 
@@ -93,7 +93,7 @@ class OrderIntegrationTest {
 }
 ```
 
-Use Testcontainers so the DB is the real engine (not H2's "almost MySQL"). See `test-testcontainers.md`.
+Use Testcontainers so the DB is the real engine (not H2's "almost MySQL"). See `testing/test-testcontainers.md`.
 
 ### End-to-end — sparingly
 
@@ -138,6 +138,6 @@ Mocking `RestClient`, `Clock`, or third-party classes creates tests coupled to a
 
 ### Context
 
-- **Coverage**: 100% coverage is not the goal — covering meaningful behavior is. See `test-coverage-assertj.md`.
+- **Coverage**: 100% coverage is not the goal — covering meaningful behavior is. See `testing/test-coverage-assertj.md`.
 - **Test speed budget**: aim for the full unit suite under 10 seconds. Slower than that and developers stop running tests locally.
-- **Cross-ref**: slice test specifics in `test-spring-boot-test.md`; Testcontainers in `test-testcontainers.md`; mocking in `test-mockito.md`.
+- **Cross-ref**: slice test specifics in `testing/test-spring-boot-test.md`; Testcontainers in `testing/test-testcontainers.md`; mocking in `testing/test-mockito.md`.

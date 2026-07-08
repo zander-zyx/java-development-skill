@@ -1,14 +1,14 @@
 ---
 title: REST Client Selection
 impact: MEDIUM
-impactDescription: Choosing the right client prevents deprecated APIs, blocking-pool exhaustion, and refactoring debt
+impactDescription: Choosing the right client prevents deprecated API lock-in, blocking-pool exhaustion, and refactoring debt
 tags: restclient, resttemplate, webclient, http-client, deprecated
 description: Use RestClient for synchronous calls (Spring 6.1+); WebClient for reactive/streams; do not start new code with RestTemplate
 ---
 
 ## REST Client Selection
 
-Spring now offers three HTTP clients. Pick by use case; do **not** start new code with `RestTemplate` — it's in maintenance and deprecated in Spring Framework 7.0.
+Spring offers three HTTP clients. Pick by use case; do **not** start new code with `RestTemplate` — as of Spring Framework 7.0, it is deprecated in favor of `RestClient`.
 
 | Client | Introduced | Style | Use when |
 |--------|-----------|-------|----------|
@@ -18,7 +18,7 @@ Spring now offers three HTTP clients. Pick by use case; do **not** start new cod
 
 ### Why it matters
 
-- `RestTemplate` is in maintenance mode and **deprecated in Spring Framework 7.0** — new code using it accumulates migration debt.
+- `RestTemplate` is deprecated in Spring Framework 7.0 in favor of `RestClient` — new code using it accumulates migration debt.
 - `WebClient` used in a servlet app drags in Netty and the reactive stack just to make a call — overkill and a different mental model.
 - `RestClient` gives the fluent API of WebClient over a synchronous JDK HttpClient — the modern sweet spot.
 
@@ -155,4 +155,4 @@ If you need Apache HttpClient as the underlying transport, use **HttpClient 5**,
 - **Timeouts**: always set connect + read timeouts. Default `RestClient` has none → hangs forever on a stuck server.
 - **Connection pooling**: the JDK HttpClient pools connections; tune via system properties if needed (`jdk.httpclient.connectionPoolSize`).
 - **Reactive decision**: pick WebClient when *most* of your handlers are reactive, not for one endpoint — mixing stacks in one app is confusing.
-- **Cross-ref**: observability of HTTP client calls (tracing, metrics) is in `sb-actuator-health.md`; the deprecation timeline is in `sb-migration-2-to-3.md`.
+- **Cross-ref**: observability of HTTP client calls (tracing, metrics) is in `spring-boot/sb-actuator-health.md`; the deprecation timeline is in `spring-boot/sb-migration-2-to-3.md`.

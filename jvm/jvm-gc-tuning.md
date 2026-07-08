@@ -82,7 +82,7 @@ Without headroom, the container OOM-kills the JVM (the OS kills before Java's GC
 
 ### Step 4: Tune only after measuring
 
-Use GC logs (see `jvm-gc-logs.md`) and metrics (`jvm.gc.pause` from Micrometer) to understand current behavior before changing anything. Then change ONE thing at a time and measure.
+Use GC logs (see `jvm/jvm-gc-logs.md`) and metrics (`jvm.gc.pause` from Micrometer) to understand current behavior before changing anything. Then change ONE thing at a time and measure.
 
 Common tunings (G1):
 ```
@@ -98,7 +98,7 @@ Don't apply these blindly — defaults in newer JDKs (especially 17/21) are ofte
 The mistake is to tune flags you read about rather than your measured bottleneck:
 - **Pause too long?** Reduce pause goal, increase heap, or switch to ZGC.
 - **CPU too high in GC?** Check if you're thrashing (heap too small) — increase heap, or your objects aren't dying young (check allocation patterns).
-- **Full GC happening?** Usually metaspace leak, or old-gen filling before young-gen collection can keep up. See `jvm-gc-logs.md`.
+- **Full GC happening?** Usually metaspace leak, or old-gen filling before young-gen collection can keep up. See `jvm/jvm-gc-logs.md`.
 
 ### Common anti-patterns
 
@@ -142,11 +142,11 @@ When tuning GC:
 - [ ] Heap leaves headroom under container limit (~75-80%)?
 - [ ] Pause-time goal set for G1?
 - [ ] GC logging enabled (`-Xlog:gc*`) for diagnosis?
-- [ ] HeapDumpOnOutOfMemoryError set (relates to `jvm-oom-analysis.md`)?
+- [ ] HeapDumpOnOutOfMemoryError set (relates to `jvm/jvm-oom-analysis.md`)?
 - [ ] Changed one thing at a time, with measurement?
 
 ### Context
 
 - **Java 21 LTS**: recommended baseline — generational ZGC, virtual threads, G1 improvements.
 - **G1 ergonomics**: in modern JDKs G1 self-tunes well; resist overriding region size / IHOP unless measurement shows the default is wrong.
-- **Cross-ref**: GC log interpretation in `jvm-gc-logs.md`; OOM (where GC tuning alone won't fix a leak) in `jvm-oom-analysis.md`; container sizing in `sb-config-profiles.md`.
+- **Cross-ref**: GC log interpretation in `jvm/jvm-gc-logs.md`; OOM (where GC tuning alone won't fix a leak) in `jvm/jvm-oom-analysis.md`; container sizing in `spring-boot/sb-config-profiles.md`.

@@ -188,4 +188,4 @@ void applies10PercentDiscountForRepeatCustomer() {
 
 - **AssertJ vs Hamcrest**: AssertJ is the modern default in Spring Boot (`spring-boot-starter-test` bundles it). Hamcrest works but AssertJ's discoverability (autocomplete on chains) makes it more usable.
 - **Mutation testing**: tools like PIT (Pitest) verify test quality by mutating production code — if a mutant survives, the test is weak. A step beyond line coverage.
-- **Cross-ref**: AssertJ is used throughout the testing files; JUnit integration in `test-junit5.md`.
+- **Cross-ref**: AssertJ is used throughout the testing files; JUnit integration in `testing/test-junit5.md`.

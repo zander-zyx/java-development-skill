@@ -156,4 +156,4 @@ Scattered `@Value`:
 - **Profile activation order**: `application.yml` is always loaded; profile files override it. Multiple active profiles apply in declaration order; later wins.
 - **Test profiles**: use `@ActiveProfiles("test")` on test classes to load `application-test.yml` (e.g. testcontainers DB).
 - **YAML gotcha**: YAML treats `on`/`off`/`yes`/`no` as booleans. Quote string config: `mode: "off"`.
-- **Cross-ref**: actuator exposure of config is in `sb-actuator-health.md`; test profile usage in `testing/test-spring-boot-test.md`.
+- **Cross-ref**: actuator exposure of config is in `spring-boot/sb-actuator-health.md`; test profile usage in `testing/test-spring-boot-test.md`.

@@ -154,4 +154,4 @@ When reviewing Java code, flag:
 - **Try-with-resources** was added in Java 7 — there's no excuse to use the old try-finally for `Closeable` resources now.
 - **Effectively-final pattern variable** — in try-with-resources, the resource variable is implicitly final; you can't reassign it. If you need to transform before closing, do that inside the body.
 - **`AutoCloseable` vs `Closeable`**: `AutoCloseable.close()` can throw any `Exception`; `Closeable.close()` throws `IOException`. Most things are `AutoCloseable`.
-- **Cross-ref**: ThreadLocal removal ties to `cr-concurrency.md`; connection pooling tuning relates to `sb-config-profiles.md` (HikariCP) and `sb-mybatis-plus.md`.
+- **Cross-ref**: ThreadLocal removal ties to `code-review/cr-concurrency.md`; connection pooling tuning relates to `spring-boot/sb-config-profiles.md` (HikariCP) and `spring-boot/sb-mybatis-plus.md`.

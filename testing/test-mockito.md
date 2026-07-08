@@ -164,4 +164,4 @@ Mockito (with mockito-inline) can mock final classes and constructors. Enable by
 
 - **Mockito version**: Mockito 5+ is inline-by-default (mocks final); 4.x needs `mockito-inline`. Spring Boot's BOM aligns these — use the managed version.
 - **`@MockBean`** (Spring): replaces a bean in the context with a mock. Convenient but expensive — each `@MockBean` triggers a context cache miss. Prefer plain `@Mock` + `@InjectMocks` for unit tests; reserve `@MockBean` for slice tests where you need the Spring context.
-- **Cross-ref**: `@MockBean` in slice tests in `test-spring-boot-test.md`; AssertJ assertion depth in `test-coverage-assertj.md`.
+- **Cross-ref**: `@MockBean` in slice tests in `testing/test-spring-boot-test.md`; AssertJ assertion depth in `testing/test-coverage-assertj.md`.

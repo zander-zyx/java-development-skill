@@ -30,7 +30,7 @@
 
 技能围绕**4 个真实工程场景**组织，采用**渐进式信息披露（Progressive Disclosure）**设计：
 
-- `SKILL.md`（路由文件）始终在 Agent 上下文中 —— 一个轻量的决策树 + 索引。
+- `SKILL.md` 是 skill 触发后加载的轻量路由文件 —— 包含默认约定、加载预算和路由表。
 - 具体规则文件**按需加载**，只在任务匹配时才读取。这样既保持每一轮对话的精简，又能容纳 26 条深度规则。
 
 这模拟了人类工程师的工作方式：你不会每次写方法前都重读一遍《Effective Java》—— 而是在用到时查阅具体规则。
@@ -53,8 +53,8 @@
 | 模型按心情挑注入方式 | 永远构造器注入 + `@RequiredArgsConstructor` |
 | 漏掉 checked exception 的 `@Transactional(rollbackFor=Exception.class)` | 规则自动套用 |
 | 用 H2 来"测"MyBatis 的 SQL | 用 Testcontainers + 真实 MySQL |
-| 泛泛的"注意线程安全"建议 | 逐条跑 `cr-concurrency.md` 的检查清单 |
-| 猜 SB 2.x 还是 3.x 的行为 | 加载 `sb-migration-2-to-3.md`，给出 6 大破坏性变更 |
+| 泛泛的"注意线程安全"建议 | 逐条跑 `code-review/cr-concurrency.md` 的检查清单 |
+| 猜 SB 2.x 还是 3.x 的行为 | 加载 `spring-boot/sb-migration-2-to-3.md`，给出 6 大破坏性变更 |
 | 抄来过时的 Lombok 建议（`@AllArgsConstructor`） | 限制在 Lombok 白名单内 |
 
 Skill 的价值，就是"会写 Java 的 AI"和"按你团队规范写 Java 的 AI"之间的差距。
@@ -77,10 +77,12 @@ Skill 的价值，就是"会写 Java 的 AI"和"按你团队规范写 Java 的 A
 
 ```
 java-development-skill/
-├── SKILL.md                # 路由文件：决策树 + 规则索引（始终加载）
+├── SKILL.md                # 路由文件：加载预算 + 路由表（触发后加载）
 ├── README.md               # 英文说明
 ├── README_zh.md            # 中文说明（本文件）
+├── AGENTS.md               # Codex 类 Agent 的常驻工程纪律
 ├── metadata.json           # 版本元数据
+├── agents/openai.yaml      # Codex UI 元数据
 │
 ├── spring-boot/            # 🌱 方向 A —— Spring Boot 开发（9 条规则）
 │   ├── sb-dependency-injection.md      构造器注入 + Lombok 策略
@@ -250,7 +252,7 @@ git clone https://github.com/zander-zyx/java-development-skill.git .claude/skill
 JPA 里怎么避免 N+1 查询？
 ```
 
-你应该得到明确提到 **JOIN FETCH / EntityGraph** 和 `open-in-view = false` 的答案 —— 这些来自 `sb-jpa-repository.md`。如果答案很泛泛（"用懒加载…"），说明 skill 没加载，看下面的[故障排查](#-故障排查)。
+你应该得到明确提到 **JOIN FETCH / EntityGraph** 和 `open-in-view = false` 的答案 —— 这些来自 `spring-boot/sb-jpa-repository.md`。如果答案很泛泛（"用懒加载…"），说明 skill 没加载，看下面的[故障排查](#-故障排查)。
 
 ## 💡 怎么使用
 
@@ -262,11 +264,12 @@ JPA 里怎么避免 N+1 查询？
 你输入一个 Java 问题
         │
         ▼
-工具读取 SKILL.md 的 description（始终在上下文里）
+工具读取 SKILL.md 的 description（触发元数据）
         │
         ├── 关键词命中（@RestController、OOM、MyBatis-Plus …）
-        │     └── 工具按需加载具体规则文件
-        │           └── 答案遵循那条规则的约定
+        │     └── 工具加载 SKILL.md 的轻量路由表
+        │           └── 只加载当前任务需要的具体规则文件
+        │                 └── 答案遵循对应规则的约定
         │
         └── 没命中 → 工具用通用知识回答（skill 保持沉默）
 ```
@@ -280,17 +283,17 @@ JPA 里怎么避免 N+1 查询？
 
 ### 问什么 —— 触发示例
 
-`SKILL.md` 的 `description` 字段枚举了约 50 个触发关键词。一些能命中 skill 的自然 prompt：
+`SKILL.md` 的 `description` 字段捕获 Java/Spring/JVM 相关信号；触发后由路由表选择最小可用规则集。一些能命中 skill 的自然 prompt：
 
 | 你说…… | 技能加载…… |
 |--------|-----------|
-| *"写个 Order 的 JPA repository，注意 N+1"* | `sb-jpa-repository.md`（→ JOIN FETCH / EntityGraph） |
-| *"我的 MyBatis-Plus 分页返回了全部数据"* | `sb-mybatis-plus.md`（→ 漏配 `PaginationInnerInterceptor`） |
-| *"帮我审查这个类的线程安全"* | `cr-concurrency.md` + `cr-resource-leak.md` |
-| *"用 Testcontainers 配 MySQL"* | `test-testcontainers.md`（→ `@ServiceConnection`） |
-| *"线上 OOM 了，怎么定位泄漏？"* | `jvm-oom-analysis.md`（→ 堆 dump + MAT） |
-| *"从 Spring Boot 2.7 迁移到 3"* | `sb-migration-2-to-3.md`（→ 6 大破坏性变更） |
-| *"帮我写个 OrderService，保存订单+调支付"* | `sb-dependency-injection.md` + `sb-mybatis-plus.md`（中文也触发） |
+| *"写个 Order 的 JPA repository，注意 N+1"* | `spring-boot/sb-jpa-repository.md`（→ JOIN FETCH / EntityGraph） |
+| *"我的 MyBatis-Plus 分页返回了全部数据"* | `spring-boot/sb-mybatis-plus.md`（→ 漏配 `PaginationInnerInterceptor`） |
+| *"帮我审查这个类的线程安全"* | `code-review/cr-concurrency.md` + `code-review/cr-resource-leak.md` |
+| *"用 Testcontainers 配 MySQL"* | `testing/test-testcontainers.md`（→ `@ServiceConnection`） |
+| *"线上 OOM 了，怎么定位泄漏？"* | `jvm/jvm-oom-analysis.md`（→ 堆 dump + MAT） |
+| *"从 Spring Boot 2.7 迁移到 3"* | `spring-boot/sb-migration-2-to-3.md`（→ 6 大破坏性变更） |
+| *"帮我写个 OrderService，保存订单+调支付"* | `spring-boot/sb-dependency-injection.md` + `spring-boot/sb-mybatis-plus.md`（中文也触发） |
 
 完整 prompt 和实际输出见 [`examples/usage-examples.zh.md`](examples/usage-examples.zh.md)（或 [英文版](examples/usage-examples.md)）。
 
@@ -339,9 +342,9 @@ git pull
 | **依赖注入** | 构造器注入，通过 `final` 字段 + `@RequiredArgsConstructor`（绝不字段 `@Autowired`） |
 | **日志** | Lombok `@Slf4j` + SLF4J（绝不 `System.out.println`） |
 | **DTO** | Java `record`（不可变，无需 Lombok） |
-| **实体** | Lombok `@Data`（可变，配合基于 id 的 `equals`/`hashCode` —— 见 `cr-equals-hashcode.md`） |
+| **实体** | Lombok `@Data`（可变，配合基于 id 的 `equals`/`hashCode` —— 见 `code-review/cr-equals-hashcode.md`） |
 | **持久层** | **MyBatis-Plus** 为默认（国内主流）；JPA 作为可选参考 |
-| **Spring Boot** | 3.x（`jakarta.*`、Java 17+）；2.x 差异见 `sb-migration-2-to-3.md` |
+| **Spring Boot** | 3.x（`jakarta.*`、Java 17+）；2.x 差异见 `spring-boot/sb-migration-2-to-3.md` |
 | **构建工具** | Maven |
 
 ## 📑 规则索引
@@ -351,15 +354,15 @@ git pull
 
 | 规则 | 影响 | 覆盖内容 |
 |------|------|----------|
-| `sb-dependency-injection.md` | HIGH | 构造器注入、Lombok 白名单、Bean 生命周期 |
-| `sb-project-structure.md` | HIGH | 按特性分包的分层结构 |
-| `sb-config-profiles.md` | MEDIUM | application.yml、profile、`spring.config.import` |
-| `sb-mybatis-plus.md` ⭐ | HIGH | BaseMapper/IService、LambdaQueryWrapper、分页、逻辑删除 |
-| `sb-jpa-repository.md` | MEDIUM | N+1、@Transactional、懒加载、Hibernate 6 UUID |
-| `sb-exception-handling.md` | HIGH | @RestControllerAdvice、RFC 7807 ProblemDetail |
-| `sb-rest-client.md` | MEDIUM | RestClient vs RestTemplate（已弃用）vs WebClient |
-| `sb-actuator-health.md` | MEDIUM | Actuator、Micrometer、分布式链路追踪 |
-| `sb-migration-2-to-3.md` ⭐ | HIGH | 2.x ↔ 3.x 迁移（6 大破坏性变更） |
+| `spring-boot/sb-dependency-injection.md` | HIGH | 构造器注入、Lombok 白名单、Bean 生命周期 |
+| `spring-boot/sb-project-structure.md` | HIGH | 按特性分包的分层结构 |
+| `spring-boot/sb-config-profiles.md` | MEDIUM | application.yml、profile、`spring.config.import` |
+| `spring-boot/sb-mybatis-plus.md` ⭐ | HIGH | BaseMapper/IService、LambdaQueryWrapper、分页、逻辑删除 |
+| `spring-boot/sb-jpa-repository.md` | MEDIUM | N+1、@Transactional、懒加载、Hibernate 6 UUID |
+| `spring-boot/sb-exception-handling.md` | HIGH | @RestControllerAdvice、RFC 7807 ProblemDetail |
+| `spring-boot/sb-rest-client.md` | MEDIUM | RestClient vs RestTemplate（已弃用）vs WebClient |
+| `spring-boot/sb-actuator-health.md` | MEDIUM | Actuator、Micrometer、分布式链路追踪 |
+| `spring-boot/sb-migration-2-to-3.md` ⭐ | HIGH | 2.x ↔ 3.x 迁移（6 大破坏性变更） |
 
 </details>
 
@@ -368,12 +371,12 @@ git pull
 
 | 规则 | 影响 | 覆盖内容 |
 |------|------|----------|
-| `cr-concurrency.md` | HIGH | synchronized、锁、竞态条件、原子类、虚拟线程 |
-| `cr-resource-leak.md` | HIGH | try-with-resources、流、连接、锁 |
-| `cr-null-safety.md` | HIGH | Optional 用法、@Nullable、NPE 防御 |
-| `cr-equals-hashcode.md` | MEDIUM | equals/hashCode 契约、Record、实体相等性 |
-| `cr-stream-pitfalls.md` | MEDIUM | 并行流、流复用、共享可变状态 |
-| `cr-anti-patterns.md` | MEDIUM | 魔法值、异常吞噬、日志滥用 |
+| `code-review/cr-concurrency.md` | HIGH | synchronized、锁、竞态条件、原子类、虚拟线程 |
+| `code-review/cr-resource-leak.md` | HIGH | try-with-resources、流、连接、锁 |
+| `code-review/cr-null-safety.md` | HIGH | Optional 用法、@Nullable、NPE 防御 |
+| `code-review/cr-equals-hashcode.md` | MEDIUM | equals/hashCode 契约、Record、实体相等性 |
+| `code-review/cr-stream-pitfalls.md` | MEDIUM | 并行流、流复用、共享可变状态 |
+| `code-review/cr-anti-patterns.md` | MEDIUM | 魔法值、异常吞噬、日志滥用 |
 
 </details>
 
@@ -382,12 +385,12 @@ git pull
 
 | 规则 | 影响 | 覆盖内容 |
 |------|------|----------|
-| `test-layering.md` | HIGH | 单元/切片/集成测试金字塔 |
-| `test-junit5.md` | HIGH | JUnit 5 生命周期、参数化测试、扩展 |
-| `test-mockito.md` | HIGH | 桩件/验证、参数匹配器、静态 mock |
-| `test-testcontainers.md` ⭐ | HIGH | @ServiceConnection、真实 DB 边界、容器复用 |
-| `test-spring-boot-test.md` | HIGH | @WebMvcTest / @DataJpaTest / @SpringBootTest 切片 |
-| `test-coverage-assertj.md` | MEDIUM | AssertJ 流式断言、JaCoCo 覆盖率 |
+| `testing/test-layering.md` | HIGH | 单元/切片/集成测试金字塔 |
+| `testing/test-junit5.md` | HIGH | JUnit 5 生命周期、参数化测试、扩展 |
+| `testing/test-mockito.md` | HIGH | 桩件/验证、参数匹配器、静态 mock |
+| `testing/test-testcontainers.md` ⭐ | HIGH | @ServiceConnection、真实 DB 边界、容器复用 |
+| `testing/test-spring-boot-test.md` | HIGH | @WebMvcTest / @DataJpaTest / @SpringBootTest 切片 |
+| `testing/test-coverage-assertj.md` | MEDIUM | AssertJ 流式断言、JaCoCo 覆盖率 |
 
 </details>
 
@@ -396,11 +399,11 @@ git pull
 
 | 规则 | 影响 | 覆盖内容 |
 |------|------|----------|
-| `jvm-gc-tuning.md` | HIGH | G1 / ZGC / Parallel 选型、堆内存设置 |
-| `jvm-oom-analysis.md` | HIGH | OOM 自动 dump、MAT 支配树、泄漏模式 |
-| `jvm-thread-dump.md` | HIGH | 死锁检测、阻塞线程、线程泄漏 |
-| `jvm-cpu-high.md` | HIGH | top -Hp + jstack + async-profiler 火焰图 |
-| `jvm-gc-logs.md` | MEDIUM | -Xlog:gc* 解读、GCEasy |
+| `jvm/jvm-gc-tuning.md` | HIGH | G1 / ZGC / Parallel 选型、堆内存设置 |
+| `jvm/jvm-oom-analysis.md` | HIGH | OOM 自动 dump、MAT 支配树、泄漏模式 |
+| `jvm/jvm-thread-dump.md` | HIGH | 死锁检测、阻塞线程、线程泄漏 |
+| `jvm/jvm-cpu-high.md` | HIGH | top -Hp + jstack + async-profiler 火焰图 |
+| `jvm/jvm-gc-logs.md` | MEDIUM | -Xlog:gc* 解读、GCEasy |
 
 </details>
 

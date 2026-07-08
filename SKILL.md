@@ -1,124 +1,66 @@
 ---
 name: java-development
-description: Java + Spring Boot development, code review, testing, and JVM troubleshooting. Covers Spring Boot (controllers, services, repositories, config, exceptions, REST clients, Security/Web), persistence (MyBatis-Plus default; Spring Data JPA/Hibernate optional), testing (JUnit 5, Mockito, AssertJ, Testcontainers), code review (concurrency, resource leaks, NPE/Optional, equals/hashCode, Stream pitfalls), and JVM (GC, OOM, thread dump, deadlock, high CPU). Trigger on Java, JVM, Spring Boot, MyBatis(-Plus), JPA, Maven pom.xml, Bean/DI, Lombok, jakarta.*/javax.*, or any Java write/test/review request.
-metadata:
-  author: personal
-  version: "1.0.0"
+description: Use when working on Java, JVM, Spring Boot, Maven pom.xml, MyBatis or MyBatis-Plus, JPA or Hibernate, Lombok, jakarta.* or javax.*, Java tests, Java code review, or JVM runtime troubleshooting such as GC, OOM, thread dumps, deadlocks, high CPU, and performance issues.
 ---
 
 # Java Development
 
-A unified skill for Java + Spring Boot engineering: development conventions, code review, testing, and JVM troubleshooting. Organized into 4 domains with progressive disclosure — this file is the router; detailed rules live in subdirectories and are read on demand.
+Router skill for Java + Spring Boot work. Keep this file light: load only the matching rule files below, then answer or edit code using those rules.
 
-## Code Style Baseline (applies to ALL examples in this skill)
+## Defaults
 
-All code in this skill follows these defaults. Read `spring-boot/sb-dependency-injection.md` for the full rationale.
+- Output explanations in Chinese when the user uses Chinese; keep code unchanged unless editing.
+- Spring Boot examples default to 3.x, `jakarta.*`, Java 17+; read `spring-boot/sb-migration-2-to-3.md` for 2.x/4.x migration questions.
+- Maven is the default build tool.
+- MyBatis-Plus is the default persistence layer for China-style Spring Boot projects; JPA/Hibernate is optional unless the project already uses it.
+- Use constructor injection with `final` fields + Lombok `@RequiredArgsConstructor`; never field `@Autowired`.
+- Use Lombok `@Slf4j` + SLF4J; never `System.out.println` in production code.
+- Prefer Java `record` for immutable DTOs; use mutable classes only when frameworks require them.
 
-- **Dependency injection**: constructor injection via `final` fields + Lombok `@RequiredArgsConstructor`. Never `@Autowired` on fields.
-- **Logging**: Lombok `@Slf4j` + SLF4J. Never `System.out.println` in production code.
-- **Data classes**: prefer Java `record` for immutable DTOs; use Lombok `@Data` only for mutable entities/JPA `@Entity`.
-- **Null safety**: use `Optional` as return type; annotate fields/params with `@Nullable`/`@NonNull` (JSR-305 or Spring's).
-- **Spring Boot version**: examples default to **Spring Boot 3.x** (`jakarta.*`, Java 17+). For 2.x differences see `spring-boot/sb-migration-2-to-3.md`.
-- **Build tool**: Maven (Gradle equivalents noted where they differ).
-- **Persistence layer**: **MyBatis-Plus is the default** (matches the China mainstream). JPA/Hibernate covered as an optional reference for OSS / foreign-company contexts. See `spring-boot/sb-mybatis-plus.md` for the default.
+## Loading Rules
 
-## When to Apply
+Start with the smallest useful set:
 
-Reference the appropriate domain when the user is:
+- Normal feature/edit: load 1 primary rule file, plus 1 cross-cutting file only if needed.
+- Broad code review: start with `code-review/cr-anti-patterns.md`, then add specific risk files.
+- Test work: load `testing/test-layering.md` first, then the framework-specific test file.
+- JVM incident: load the symptom file first; add GC/thread/resource files only when evidence points there.
+- Do not load README files or `examples/` unless the user asks for usage docs.
 
-- **A. Building Spring Boot apps** — controllers, services, repositories, config, JPA entities, exception handling, REST clients, actuator
-- **B. Reviewing Java code** — concurrency bugs, resource leaks, NPE risks, equals/hashCode contracts, Stream misuse
-- **C. Writing Java tests** — JUnit 5, Mockito, AssertJ, Testcontainers, Spring Boot Test slices
-- **D. Troubleshooting the JVM** — GC tuning, OOM analysis, thread dumps, high CPU, performance profiling
+## Route By Task
 
-## Workflow / Decision Tree
+| Task signal | Read first | Add if needed |
+|---|---|---|
+| DI, beans, Lombok, service/controller skeleton | `spring-boot/sb-dependency-injection.md` | `spring-boot/sb-project-structure.md` |
+| Package layout, controller/service/repository boundaries | `spring-boot/sb-project-structure.md` | `spring-boot/sb-exception-handling.md` |
+| `application.yml`, profiles, secrets, config import | `spring-boot/sb-config-profiles.md` | `spring-boot/sb-actuator-health.md` |
+| MyBatis, MyBatis-Plus, mapper, wrapper, pagination | `spring-boot/sb-mybatis-plus.md` | `code-review/cr-equals-hashcode.md` |
+| JPA, Hibernate, N+1, lazy loading, transactions | `spring-boot/sb-jpa-repository.md` | `code-review/cr-equals-hashcode.md` |
+| REST API error handling, validation errors | `spring-boot/sb-exception-handling.md` | `code-review/cr-null-safety.md` |
+| HTTP clients, RestClient, WebClient, RestTemplate | `spring-boot/sb-rest-client.md` | `spring-boot/sb-config-profiles.md` |
+| Actuator, health, metrics, probes | `spring-boot/sb-actuator-health.md` | `jvm/jvm-gc-logs.md` |
+| Spring Boot 2->3, 3->4, javax/jakarta | `spring-boot/sb-migration-2-to-3.md` | `spring-boot/sb-rest-client.md` |
+| Java code review, general smell scan | `code-review/cr-anti-patterns.md` | specific review files below |
+| Thread safety, locks, `ThreadLocal`, transactions proxy | `code-review/cr-concurrency.md` | `code-review/cr-resource-leak.md` |
+| Closeable, JDBC, locks, thread pools, leaks | `code-review/cr-resource-leak.md` | `jvm/jvm-oom-analysis.md` |
+| NPE, `Optional`, nullable contracts | `code-review/cr-null-safety.md` | `spring-boot/sb-exception-handling.md` |
+| `equals`, `hashCode`, entity identity | `code-review/cr-equals-hashcode.md` | persistence rule in use |
+| Stream API, parallel stream, lambda side effects | `code-review/cr-stream-pitfalls.md` | `code-review/cr-concurrency.md` |
+| Test strategy, unit/slice/integration choice | `testing/test-layering.md` | one test framework file |
+| JUnit 5 lifecycle, parameterized tests | `testing/test-junit5.md` | `testing/test-coverage-assertj.md` |
+| Mockito mocks, spies, static mocks | `testing/test-mockito.md` | `testing/test-layering.md` |
+| Testcontainers, real DB/Redis/Kafka | `testing/test-testcontainers.md` | `testing/test-spring-boot-test.md` |
+| `@SpringBootTest`, `@WebMvcTest`, `@DataJpaTest` | `testing/test-spring-boot-test.md` | `testing/test-testcontainers.md` |
+| AssertJ, JaCoCo, coverage floor | `testing/test-coverage-assertj.md` | framework-specific test file |
+| OOM, heap dump, memory leak | `jvm/jvm-oom-analysis.md` | `code-review/cr-resource-leak.md` |
+| High CPU, hot thread, profiling | `jvm/jvm-cpu-high.md` | `jvm/jvm-thread-dump.md` |
+| Hang, deadlock, thread leak | `jvm/jvm-thread-dump.md` | `code-review/cr-concurrency.md` |
+| GC pause, heap sizing, collector choice | `jvm/jvm-gc-tuning.md` | `jvm/jvm-gc-logs.md` |
+| GC log interpretation | `jvm/jvm-gc-logs.md` | `jvm/jvm-gc-tuning.md` |
 
-When a task comes in, first identify which domain it belongs to. A task may span multiple domains — read the relevant rule file from each.
+## Assets
 
-1. **Is it about writing/configuring Spring Boot code?** → Domain A. Read the specific rule below (e.g. writing a JPA entity → `sb-jpa-repository.md`; setting up an exception handler → `sb-exception-handling.md`).
-
-2. **Is the user asking to review/audit existing Java code, or did they paste code to check?** → Domain B. Read `cr-concurrency.md`, `cr-resource-leak.md`, `cr-null-safety.md` as relevant. Cross-cutting review → start with `cr-anti-patterns.md`.
-
-3. **Is it about writing tests or test setup?** → Domain C. Test strategy first → `test-layering.md`; specific framework → the matching file. Testcontainers questions → `test-testcontainers.md`.
-
-4. **Is it a production/runtime problem (OOM, slow, CPU spike, dead lock)?** → Domain D. Start from the symptom: OOM → `jvm-oom-analysis.md`; CPU high → `jvm-cpu-high.md`; hung/deadlock → `jvm-thread-dump.md`; GC pauses → `jvm-gc-tuning.md` + `jvm-gc-logs.md`.
-
-If unclear which domain, inspect the context (mentions of `@RestController` → A; `synchronized`/`ExecutorService` → B; `@Test`/`Mockito` → C; `jstack`/`-Xmx`/GC → D).
-
-## Rule Index
-
-### A. Spring Boot Development (`spring-boot/`)
-
-| File | Covers | Priority |
-|------|--------|----------|
-| `sb-dependency-injection.md` | Constructor injection, Lombok strategy, Bean lifecycle | HIGH |
-| `sb-project-structure.md` | Layered structure: controller/service/repository/dto | HIGH |
-| `sb-config-profiles.md` | application.yml, profiles, spring.config.import | MEDIUM |
-| `sb-mybatis-plus.md` | BaseMapper/IService, LambdaQueryWrapper, pagination, logical delete (default) | HIGH |
-| `sb-jpa-repository.md` | JPA: N+1, @Transactional, lazy loading, Hibernate 6 UUID (optional) | MEDIUM |
-| `sb-exception-handling.md` | @RestControllerAdvice, global exception handling | HIGH |
-| `sb-rest-client.md` | RestClient (new) vs RestTemplate (deprecated) vs WebClient | MEDIUM |
-| `sb-actuator-health.md` | actuator, health checks, metrics | MEDIUM |
-| `sb-migration-2-to-3.md` | Spring Boot 2.x ↔ 3.x migration (6 key differences) | HIGH |
-
-### B. Java Code Review (`code-review/`)
-
-| File | Covers | Priority |
-|------|--------|----------|
-| `cr-concurrency.md` | synchronized, locks, race conditions, atomic classes | HIGH |
-| `cr-resource-leak.md` | try-with-resources, streams, connections | HIGH |
-| `cr-null-safety.md` | Optional usage, NPE defense, @Nullable | HIGH |
-| `cr-equals-hashcode.md` | equals/hashCode contract, records | MEDIUM |
-| `cr-stream-pitfalls.md` | Stream parallel, short-circuit, reuse misuse | MEDIUM |
-| `cr-anti-patterns.md` | magic values, swallowed exceptions, logging abuse | MEDIUM |
-
-### C. Java Testing (`testing/`)
-
-| File | Covers | Priority |
-|------|--------|----------|
-| `test-layering.md` | Unit / slice / integration test layering strategy | HIGH |
-| `test-junit5.md` | JUnit 5 lifecycle, parameterized, extensions | HIGH |
-| `test-mockito.md` | Mockito stub/spy/verify, static mocking | HIGH |
-| `test-testcontainers.md` | @ServiceConnection, container reuse | HIGH |
-| `test-spring-boot-test.md` | @SpringBootTest / @WebMvcTest / @DataJpaTest | HIGH |
-| `test-coverage-assertj.md` | AssertJ chaining, JaCoCo coverage | MEDIUM |
-
-### D. JVM Troubleshooting (`jvm/`)
-
-| File | Covers | Priority |
-|------|--------|----------|
-| `jvm-gc-tuning.md` | GC selection (G1/ZGC/Parallel) + tuning | HIGH |
-| `jvm-oom-analysis.md` | OOM: heap dump + MAT analysis flow | HIGH |
-| `jvm-thread-dump.md` | Thread dump + deadlock detection | HIGH |
-| `jvm-cpu-high.md` | High CPU: top -Hp + jstack + flame graph | HIGH |
-| `jvm-gc-logs.md` | GC log interpretation (-Xlog:gc*) | MEDIUM |
-
-## How to Use
-
-Read the specific rule file before producing code or analysis:
-
-```
-spring-boot/sb-jpa-repository.md
-testing/test-testcontainers.md
-jvm/jvm-oom-analysis.md
-```
-
-Each rule file contains:
-- **Why it matters** — the concrete harm of getting it wrong
-- **Correct** — example with explanation
-- **Incorrect / When NOT to use** — anti-pattern OR guidance on when the rule doesn't apply
-- **Context** — version differences, edge cases, references
-
-## Asset Templates
-
-Copy-ready scaffolding under `assets/`:
-
-- `pom-spring-boot-3.xml` — Spring Boot 3.x Maven pom (Java 17, jakarta)
-- `pom-spring-boot-2.xml` — Spring Boot 2.x Maven pom (javax)
-- `controller-service-test.java` — Controller + Service + Test three-layer skeleton
-- `application.yml.template` — multi-environment config template
-
-## Notes
-
-- **Version currency**: The Java/Spring ecosystem moves fast. Check `metadata.json` for the version date; rules reference Spring Boot 3.x + Java 17/21 as of authoring. The `sb-migration-2-to-3.md` file tracks the current state of versions (incl. 4.x).
-- **Self-contained**: Examples assume no specific project structure beyond standard Maven layout, so the skill is portable.
+- `assets/pom-spring-boot-3.xml`: Spring Boot 3.x Maven baseline.
+- `assets/pom-spring-boot-2.xml`: Spring Boot 2.x Maven baseline.
+- `assets/controller-service-test.java`: Controller + service + test skeleton.
+- `assets/application.yml.template`: multi-environment config template.

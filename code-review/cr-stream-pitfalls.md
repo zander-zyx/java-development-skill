@@ -144,4 +144,4 @@ String label = orderRepo.findById(id)
 
 - **`.toList()` (Java 16+)** returns an unmodifiable list; `collect(toList())` returns a mutable `ArrayList`. Pick by mutability needs.
 - **Stream characteristics**: operations like `sorted` lose the `SIZED` and `ORDERED` characteristics; downstream `limit` may behave unexpectedly. Not usually a problem, but worth knowing when results look wrong.
-- **Cross-ref**: parallel stream concurrency bugs relate to `cr-concurrency.md`; Optional chain to `cr-null-safety.md`.
+- **Cross-ref**: parallel stream concurrency bugs relate to `code-review/cr-concurrency.md`; Optional chain to `code-review/cr-null-safety.md`.

@@ -70,9 +70,9 @@ To work on "orders" you'd open 4 folders. To delete an order feature you'd grep 
 | `@Service` | feature package | Transaction boundary; orchestrates repository + clients |
 | `JpaRepository` | feature package | Interface only; no query logic that belongs in service |
 | `@Entity` | feature package | Don't leak entities into controller responses — use a DTO/record |
-| DTO records | `feature/dto` | Use `record`, never expose entity directly (see `sb-jpa-repository.md`) |
+| DTO records | `feature/dto` | Use `record`, never expose entity directly (see `spring-boot/sb-jpa-repository.md`) |
 | `@Configuration` | top-level `config` package | One config class per concern (SecurityConfig, WebConfig) |
-| Global exception handler | top-level `config` or `web` package | See `sb-exception-handling.md` |
+| Global exception handler | top-level `config` or `web` package | See `spring-boot/sb-exception-handling.md` |
 | `main` class | top-level package | `@SpringBootApplication` should sit above feature packages so `@ComponentScan` finds them |
 
 ### Main class placement
@@ -110,4 +110,4 @@ public OrderResponse getOrder(@PathVariable Long id) {
 
 - **Small apps** — if the whole app is one feature, package-by-layer is tolerable. The rule of thumb: as soon as you have two features, switch to package-by-feature.
 - **Spring Modulith / hexagonal** — if you adopt a stricter architecture (ports & adapters), the same principle applies: group by module/feature, not by technical role.
-- **Cross-ref**: DTO conversion and the N+1 trap live in `sb-jpa-repository.md`; exception handling in `sb-exception-handling.md`.
+- **Cross-ref**: DTO conversion and the N+1 trap live in `spring-boot/sb-jpa-repository.md`; exception handling in `spring-boot/sb-exception-handling.md`.

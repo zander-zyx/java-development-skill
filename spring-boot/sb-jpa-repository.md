@@ -172,4 +172,4 @@ Watch the **column DDL**: UUID often changed from `binary(16)` to `varchar(36)` 
 
 - **open-in-view**: Spring sets it `true` by default for "convenience" but logs a warning. Turn it off and fix the laziness explicitly — see the N+1 rules above.
 - **DTO projections**: for read-heavy endpoints, project straight to a DTO via interface/record projection instead of loading entities — avoids lazy issues entirely.
-- **Cross-ref**: `@Transactional` self-invocation is a variant of the proxy pitfall in `code-review/cr-concurrency.md`; entity equality expanded in `code-review/cr-equals-hashcode.md`; 2.x→3.x migration including Hibernate changes in `sb-migration-2-to-3.md`.
+- **Cross-ref**: `@Transactional` self-invocation is a variant of the proxy pitfall in `code-review/cr-concurrency.md`; entity equality expanded in `code-review/cr-equals-hashcode.md`; 2.x→3.x migration including Hibernate changes in `spring-boot/sb-migration-2-to-3.md`.

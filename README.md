@@ -30,8 +30,8 @@ A knowledge base that turns an AI coding agent into a **senior Java/Spring Boot 
 
 The skill is organized around **4 real-world engineering scenarios** and uses **progressive disclosure**:
 
-- `SKILL.md` (router) is always in the agent's context — a lightweight decision tree + index.
-- Individual rule files are loaded **on demand**, only when the task matches. This keeps every turn lean while the full knowledge base is 26 deep-dive rules.
+- `SKILL.md` is a lightweight router loaded after the skill triggers — defaults, loading budget, and a route table.
+- Individual rule files are loaded **on demand**, only when the task matches. This keeps every turn lean while the full knowledge base remains 26 deep-dive rules.
 
 This mirrors how a human engineer works: you don't re-read all of "Effective Java" every time you write a method — you look up the specific rule when it applies.
 
@@ -53,8 +53,8 @@ Modern LLMs already "know" Java. So why install this skill? Because general know
 | Model picks injection style by mood | Always constructor injection + `@RequiredArgsConstructor` |
 | Forgets `@Transactional(rollbackFor=Exception.class)` on checked exceptions | Rule auto-applied |
 | Reaches for H2 to "test" MyBatis SQL | Uses Testcontainers + real MySQL |
-| Generic "check for thread safety" advice | Runs the `cr-concurrency.md` checklist item by item |
-| Guesses SB 2.x vs 3.x behavior | Loads `sb-migration-2-to-3.md`, gets the 6 breaking changes |
+| Generic "check for thread safety" advice | Runs the `code-review/cr-concurrency.md` checklist item by item |
+| Guesses SB 2.x vs 3.x behavior | Loads `spring-boot/sb-migration-2-to-3.md`, gets the 6 breaking changes |
 | Copy-pastes stale Lombok advice (`@AllArgsConstructor`) | Restricted to the Lombok allowlist |
 
 The skill is the difference between "an AI that can write Java" and "an AI that writes Java the way your team does".
@@ -70,12 +70,14 @@ The skill is the difference between "an AI that can write Java" and "an AI that 
 
 ```
 java-development-skill/
-├── SKILL.md                # Router: decision tree + rule index (always loaded)
+├── SKILL.md                # Router: loading budget + route table (loaded after trigger)
 ├── README.md               # This file (English)
 ├── README_zh.md            # Chinese edition
+├── AGENTS.md               # Always-on engineering discipline for Codex-style agents
 ├── metadata.json           # Version metadata
 ├── LICENSE                 # MIT
 ├── install.sh              # Cross-tool one-click installer
+├── agents/openai.yaml      # Codex UI metadata
 │
 ├── spring-boot/            # 🌱 Domain A — Spring Boot Development (9 rules)
 │   ├── sb-dependency-injection.md      Constructor injection + Lombok strategy
@@ -249,7 +251,7 @@ The `*.md` files are plain Markdown. Browse them on GitHub/Gitee/cnb, or clone a
 How do I prevent N+1 queries in JPA?
 ```
 
-You should get an answer that specifically mentions **JOIN FETCH / EntityGraph** and the `open-in-view = false` setting — those come from `sb-jpa-repository.md`. If the answer is generic ("use lazy loading…"), the skill didn't load; see [Troubleshooting](#-troubleshooting) below.
+You should get an answer that specifically mentions **JOIN FETCH / EntityGraph** and the `open-in-view = false` setting — those come from `spring-boot/sb-jpa-repository.md`. If the answer is generic ("use lazy loading…"), the skill didn't load; see [Troubleshooting](#-troubleshooting) below.
 
 ## 💡 How to use
 
@@ -261,11 +263,12 @@ You don't "open" or "invoke" the skill. Once installed, it works **transparently
 You type a Java question
         │
         ▼
-The tool reads SKILL.md's description (always in context)
+The tool reads SKILL.md's description (the trigger metadata)
         │
         ├── keywords match (@RestController, OOM, MyBatis-Plus, …)
-        │     └── tool loads the specific rule file on demand
-        │           └── answer follows that rule's conventions
+        │     └── tool loads SKILL.md's lightweight route table
+        │           └── tool loads only the specific rule file(s) needed
+        │                 └── answer follows those conventions
         │
         └── no match → tool answers with its general knowledge (skill stays silent)
 ```
@@ -279,17 +282,17 @@ You never type a file name. The skill decides what to load based on what you sai
 
 ### What to ask — trigger examples
 
-The `description` frontmatter in `SKILL.md` enumerates ~50 trigger keywords. Some natural prompts that fire the skill:
+The `description` frontmatter catches broad Java/Spring/JVM signals; the route table in `SKILL.md` then picks the smallest useful rule set. Some natural prompts that fire the skill:
 
 | You say… | Skill loads… |
 |----------|--------------|
-| *"Write a JPA repository for Order, watch out for N+1"* | `sb-jpa-repository.md` (→ JOIN FETCH / EntityGraph) |
-| *"My MyBatis-Plus pagination returns all rows"* | `sb-mybatis-plus.md` (→ forgot `PaginationInnerInterceptor`) |
-| *"Review this class for thread safety"* | `cr-concurrency.md` + `cr-resource-leak.md` |
-| *"Set up Testcontainers with MySQL"* | `test-testcontainers.md` (→ `@ServiceConnection`) |
-| *"Prod is OOMing, how do I find the leak?"* | `jvm-oom-analysis.md` (→ heap dump + MAT) |
-| *"Migrating from Spring Boot 2.7 to 3"* | `sb-migration-2-to-3.md` (→ 6 breaking changes) |
-| *"帮我写个 OrderService，保存订单+调支付"* | `sb-dependency-injection.md` + `sb-mybatis-plus.md` (中文 also triggers) |
+| *"Write a JPA repository for Order, watch out for N+1"* | `spring-boot/sb-jpa-repository.md` (→ JOIN FETCH / EntityGraph) |
+| *"My MyBatis-Plus pagination returns all rows"* | `spring-boot/sb-mybatis-plus.md` (→ forgot `PaginationInnerInterceptor`) |
+| *"Review this class for thread safety"* | `code-review/cr-concurrency.md` + `code-review/cr-resource-leak.md` |
+| *"Set up Testcontainers with MySQL"* | `testing/test-testcontainers.md` (→ `@ServiceConnection`) |
+| *"Prod is OOMing, how do I find the leak?"* | `jvm/jvm-oom-analysis.md` (→ heap dump + MAT) |
+| *"Migrating from Spring Boot 2.7 to 3"* | `spring-boot/sb-migration-2-to-3.md` (→ 6 breaking changes) |
+| *"帮我写个 OrderService，保存订单+调支付"* | `spring-boot/sb-dependency-injection.md` + `spring-boot/sb-mybatis-plus.md` (中文 also triggers) |
 
 See [`examples/usage-examples.md`](examples/usage-examples.md) (or [中文版](examples/usage-examples.zh.md)) for full prompts with the actual output each produces.
 
@@ -338,9 +341,9 @@ Every example in this skill follows the same conventions, so generated code is c
 | **Dependency injection** | Constructor injection via `final` fields + `@RequiredArgsConstructor` (never field `@Autowired`) |
 | **Logging** | Lombok `@Slf4j` + SLF4J (never `System.out.println`) |
 | **DTOs** | Java `record` (immutable, no Lombok needed) |
-| **Entities** | Lombok `@Data` (mutable, with id-based `equals`/`hashCode` — see `cr-equals-hashcode.md`) |
+| **Entities** | Lombok `@Data` (mutable, with id-based `equals`/`hashCode` — see `code-review/cr-equals-hashcode.md`) |
 | **Persistence** | **MyBatis-Plus** by default (China mainstream); JPA as optional reference |
-| **Spring Boot** | 3.x (`jakarta.*`, Java 17+); 2.x differences in `sb-migration-2-to-3.md` |
+| **Spring Boot** | 3.x (`jakarta.*`, Java 17+); 2.x differences in `spring-boot/sb-migration-2-to-3.md` |
 | **Build** | Maven |
 
 ## 📑 Rule Index
@@ -350,15 +353,15 @@ Every example in this skill follows the same conventions, so generated code is c
 
 | Rule | Impact | Covers |
 |------|--------|--------|
-| `sb-dependency-injection.md` | HIGH | Constructor injection, Lombok allowlist, Bean lifecycle |
-| `sb-project-structure.md` | HIGH | Package-by-feature layering |
-| `sb-config-profiles.md` | MEDIUM | application.yml, profiles, `spring.config.import` |
-| `sb-mybatis-plus.md` ⭐ | HIGH | BaseMapper/IService, LambdaQueryWrapper, pagination, logical delete |
-| `sb-jpa-repository.md` | MEDIUM | N+1, @Transactional, lazy loading, Hibernate 6 UUID |
-| `sb-exception-handling.md` | HIGH | @RestControllerAdvice, RFC 7807 ProblemDetail |
-| `sb-rest-client.md` | MEDIUM | RestClient vs RestTemplate (deprecated) vs WebClient |
-| `sb-actuator-health.md` | MEDIUM | Actuator, Micrometer, distributed tracing |
-| `sb-migration-2-to-3.md` ⭐ | HIGH | 2.x ↔ 3.x migration (6 breaking changes) |
+| `spring-boot/sb-dependency-injection.md` | HIGH | Constructor injection, Lombok allowlist, Bean lifecycle |
+| `spring-boot/sb-project-structure.md` | HIGH | Package-by-feature layering |
+| `spring-boot/sb-config-profiles.md` | MEDIUM | application.yml, profiles, `spring.config.import` |
+| `spring-boot/sb-mybatis-plus.md` ⭐ | HIGH | BaseMapper/IService, LambdaQueryWrapper, pagination, logical delete |
+| `spring-boot/sb-jpa-repository.md` | MEDIUM | N+1, @Transactional, lazy loading, Hibernate 6 UUID |
+| `spring-boot/sb-exception-handling.md` | HIGH | @RestControllerAdvice, RFC 7807 ProblemDetail |
+| `spring-boot/sb-rest-client.md` | MEDIUM | RestClient vs RestTemplate (deprecated) vs WebClient |
+| `spring-boot/sb-actuator-health.md` | MEDIUM | Actuator, Micrometer, distributed tracing |
+| `spring-boot/sb-migration-2-to-3.md` ⭐ | HIGH | 2.x ↔ 3.x migration (6 breaking changes) |
 
 </details>
 
@@ -367,12 +370,12 @@ Every example in this skill follows the same conventions, so generated code is c
 
 | Rule | Impact | Covers |
 |------|--------|--------|
-| `cr-concurrency.md` | HIGH | synchronized, locks, race conditions, atomic classes, virtual threads |
-| `cr-resource-leak.md` | HIGH | try-with-resources, streams, connections, locks |
-| `cr-null-safety.md` | HIGH | Optional usage, @Nullable, NPE defense |
-| `cr-equals-hashcode.md` | MEDIUM | equals/hashCode contract, records, entity equality |
-| `cr-stream-pitfalls.md` | MEDIUM | parallel stream, reuse, shared mutation |
-| `cr-anti-patterns.md` | MEDIUM | magic values, swallowed exceptions, logging abuse |
+| `code-review/cr-concurrency.md` | HIGH | synchronized, locks, race conditions, atomic classes, virtual threads |
+| `code-review/cr-resource-leak.md` | HIGH | try-with-resources, streams, connections, locks |
+| `code-review/cr-null-safety.md` | HIGH | Optional usage, @Nullable, NPE defense |
+| `code-review/cr-equals-hashcode.md` | MEDIUM | equals/hashCode contract, records, entity equality |
+| `code-review/cr-stream-pitfalls.md` | MEDIUM | parallel stream, reuse, shared mutation |
+| `code-review/cr-anti-patterns.md` | MEDIUM | magic values, swallowed exceptions, logging abuse |
 
 </details>
 
@@ -381,12 +384,12 @@ Every example in this skill follows the same conventions, so generated code is c
 
 | Rule | Impact | Covers |
 |------|--------|--------|
-| `test-layering.md` | HIGH | Unit / slice / integration test pyramid |
-| `test-junit5.md` | HIGH | JUnit 5 lifecycle, parameterized tests, extensions |
-| `test-mockito.md` | HIGH | Stub/spy/verify, argument matchers, static mocking |
-| `test-testcontainers.md` ⭐ | HIGH | @ServiceConnection, real DB boundaries, container reuse |
-| `test-spring-boot-test.md` | HIGH | @WebMvcTest / @DataJpaTest / @SpringBootTest slices |
-| `test-coverage-assertj.md` | MEDIUM | AssertJ fluent assertions, JaCoCo coverage |
+| `testing/test-layering.md` | HIGH | Unit / slice / integration test pyramid |
+| `testing/test-junit5.md` | HIGH | JUnit 5 lifecycle, parameterized tests, extensions |
+| `testing/test-mockito.md` | HIGH | Stub/spy/verify, argument matchers, static mocking |
+| `testing/test-testcontainers.md` ⭐ | HIGH | @ServiceConnection, real DB boundaries, container reuse |
+| `testing/test-spring-boot-test.md` | HIGH | @WebMvcTest / @DataJpaTest / @SpringBootTest slices |
+| `testing/test-coverage-assertj.md` | MEDIUM | AssertJ fluent assertions, JaCoCo coverage |
 
 </details>
 
@@ -395,11 +398,11 @@ Every example in this skill follows the same conventions, so generated code is c
 
 | Rule | Impact | Covers |
 |------|--------|--------|
-| `jvm-gc-tuning.md` | HIGH | G1 / ZGC / Parallel selection, heap sizing |
-| `jvm-oom-analysis.md` | HIGH | Heap dump on OOM, MAT dominator tree, leak patterns |
-| `jvm-thread-dump.md` | HIGH | Deadlock detection, blocked threads, thread leaks |
-| `jvm-cpu-high.md` | HIGH | top -Hp + jstack + async-profiler flame graphs |
-| `jvm-gc-logs.md` | MEDIUM | -Xlog:gc* interpretation, GCEasy |
+| `jvm/jvm-gc-tuning.md` | HIGH | G1 / ZGC / Parallel selection, heap sizing |
+| `jvm/jvm-oom-analysis.md` | HIGH | Heap dump on OOM, MAT dominator tree, leak patterns |
+| `jvm/jvm-thread-dump.md` | HIGH | Deadlock detection, blocked threads, thread leaks |
+| `jvm/jvm-cpu-high.md` | HIGH | top -Hp + jstack + async-profiler flame graphs |
+| `jvm/jvm-gc-logs.md` | MEDIUM | -Xlog:gc* interpretation, GCEasy |
 
 </details>
 

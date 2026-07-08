@@ -143,4 +143,4 @@ void placesOrderThroughRepository() {
 - **Single constructor + Spring 4.3+**: Spring auto-injects when there is exactly one constructor, even without `@Autowired`. `@RequiredArgsConstructor` produces exactly one, so this just works.
 - **Circular dependencies**: SB 3.x fails startup on circular references by default (it was already discouraged in 2.x). If you hit one, the fix is usually to extract a third collaborator, not to re-enable field injection.
 - **Lombok config**: To forbid field injection at compile time, add `lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Qualifier` in `lombok.config` so qualifiers propagate onto the generated constructor params.
-- **Cross-ref**: For JPA entity `@Data` caveats (the generated `equals`/`hashCode` can break lazy loading), see `sb-jpa-repository.md` and `code-review/cr-equals-hashcode.md`.
+- **Cross-ref**: For JPA entity `@Data` caveats (the generated `equals`/`hashCode` can break lazy loading), see `spring-boot/sb-jpa-repository.md` and `code-review/cr-equals-hashcode.md`.

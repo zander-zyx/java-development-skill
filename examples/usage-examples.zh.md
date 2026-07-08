@@ -85,7 +85,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
 >         .build();
 > ```
 
-Skill 把一句模糊的"审查一下"变成了结构化的清单检查（`cr-concurrency.md` 里有专门的检查清单）。
+Skill 把一句模糊的"审查一下"变成了结构化的清单检查（`code-review/cr-concurrency.md` 里有专门的检查清单）。
 
 ---
 

@@ -19,7 +19,7 @@ Spring Boot 3.0 (Nov 2022) was the biggest breaking release since 1.x. Migration
 | **3.x** | Active. 3.4.x OSS ended (3.4.13 final); 3.5.x is the current active line. |
 | **4.1.0** | Current latest stable (Jun 2026), based on Spring Framework 7.0.8. |
 
-If you're on 2.7, migrate to 3.x before considering 4.x. Spring Framework 7.0 (in SB4) deprecates `RestTemplate` — plan to move sync HTTP calls to `RestClient` (see `sb-rest-client.md`).
+If you're on 2.7, migrate to 3.x before considering 4.x. Spring Framework 7.0 (in SB4) deprecates `RestTemplate` in favor of `RestClient`; plan sync HTTP migrations accordingly (see `spring-boot/sb-rest-client.md`).
 
 ### The 6 breaking changes
 
@@ -74,7 +74,7 @@ private Long id;
 
 **c. `@Type` API refactored**. The Hibernate 5 custom-type annotation is replaced by `@Type(Class<? extends UserimeType>)` in Hibernate 6, and many old `@Type` values no longer compile. Migrate to `@Convert(converter = ...)` or the new `@JavaType`/`@JdbcType`.
 
-Bonus: Hibernate 6 / JPA 3.1 added `GenerationType.UUID` for native UUID generation (see `sb-jpa-repository.md`).
+Bonus: Hibernate 6 / JPA 3.1 added `GenerationType.UUID` for native UUID generation (see `spring-boot/sb-jpa-repository.md`).
 
 #### 4. Trailing-slash matching flipped (most common regression)
 
@@ -164,5 +164,5 @@ The old mechanism still works in 3.x but is deprecated and on a removal track.
 ### Context
 
 - **Native Image**: SB3 makes GraalVM AOT a first-class feature (`spring-boot-maven-plugin` `native` goal). SB2's `spring-native` experiment is dead. Not a migration blocker, but a reason to move.
-- **Cross-ref**: HttpClient/RestClient selection in `sb-rest-client.md`; Hibernate 6 UUID/entity equality in `sb-jpa-repository.md`; MP starter artifact id (`mybatis-plus-spring-boot3-starter` vs `mybatis-plus-boot-starter`) in `sb-mybatis-plus.md`.
+- **Cross-ref**: HttpClient/RestClient selection in `spring-boot/sb-rest-client.md`; Hibernate 6 UUID/entity equality in `spring-boot/sb-jpa-repository.md`; MP starter artifact id (`mybatis-plus-spring-boot3-starter` vs `mybatis-plus-boot-starter`) in `spring-boot/sb-mybatis-plus.md`.
 - **Source**: [Spring Boot 3.0 Migration Guide (wiki)](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide).

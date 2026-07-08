@@ -164,7 +164,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 }
 ```
 
-Same transaction caveats as JPA: self-invocation bypasses the proxy, checked exceptions don't roll back without `rollbackFor`. See `sb-jpa-repository.md` § "@Transactional placement" (the rules are framework-agnostic).
+Same transaction caveats as JPA: self-invocation bypasses the proxy, checked exceptions don't roll back without `rollbackFor`. See `spring-boot/sb-jpa-repository.md` § "@Transactional placement" (the rules are framework-agnostic).
 
 ### Code generation
 
@@ -211,6 +211,6 @@ MP and raw MyBatis coexist cleanly — put simple CRUD on `BaseMapper`, complex 
 
 ### Context
 
-- **SB3 vs SB2 starter**: the artifact id differs — `mybatis-plus-spring-boot3-starter` for SB3, `mybatis-plus-boot-starter` for SB2. Using the wrong one fails to autoconfigure. See `sb-migration-2-to-3.md`.
+- **SB3 vs SB2 starter**: the artifact id differs — `mybatis-plus-spring-boot3-starter` for SB3, `mybatis-plus-boot-starter` for SB2. Using the wrong one fails to autoconfigure. See `spring-boot/sb-migration-2-to-3.md`.
 - **DbType**: set `DbType` correctly in `PaginationInnerInterceptor` (MYSQL, POSTGRE_SQL, ORACLE...) — wrong dialect generates invalid `LIMIT` syntax.
-- **Cross-ref**: transaction rules shared with `sb-jpa-repository.md`; equals/hashCode in `code-review/cr-equals-hashcode.md`; for OSS/foreign contexts JPA is covered in `sb-jpa-repository.md`.
+- **Cross-ref**: transaction rules shared with `spring-boot/sb-jpa-repository.md`; equals/hashCode in `code-review/cr-equals-hashcode.md`; for OSS/foreign contexts JPA is covered in `spring-boot/sb-jpa-repository.md`.

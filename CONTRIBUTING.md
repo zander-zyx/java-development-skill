@@ -54,7 +54,7 @@ Follow the project's [Code Style Baseline](README.md#-code-style-baseline):
 - Constructor injection via `@RequiredArgsConstructor` (no field `@Autowired`)
 - Lombok `@Slf4j` for logging
 - `record` for DTOs, `@Data` for entities
-- Spring Boot 3.x (`jakarta.*`) default; 2.x differences in `sb-migration-2-to-3.md`
+- Spring Boot 3.x (`jakarta.*`) default; 2.x differences in `spring-boot/sb-migration-2-to-3.md`
 - MyBatis-Plus as default persistence layer
 
 ### Workflow
@@ -129,7 +129,7 @@ alwaysApply: true   # 可选，仅用于最关键的规则
 - 构造器注入 + `@RequiredArgsConstructor`（不要字段 `@Autowired`）
 - 日志用 Lombok `@Slf4j`
 - DTO 用 `record`，实体用 `@Data`
-- 默认 Spring Boot 3.x（`jakarta.*`）；2.x 差异见 `sb-migration-2-to-3.md`
+- 默认 Spring Boot 3.x（`jakarta.*`）；2.x 差异见 `spring-boot/sb-migration-2-to-3.md`
 - 持久层默认 MyBatis-Plus
 
 ### 工作流

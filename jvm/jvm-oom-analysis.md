@@ -143,4 +143,4 @@ When investigating OOM:
 
 - **Heap dump size**: roughly equals live heap at capture. A 4GB heap produces ~4GB dump. Have disk space.
 - **Sensitive data**: heap dumps contain object data — passwords, PII. Handle with the same care as logs; restrict access.
-- **Cross-ref**: thread leaks cause "native thread" OOM — see `jvm-thread-dump.md`; resource leaks that build up to OOM in `code-review/cr-resource-leak.md`.
+- **Cross-ref**: thread leaks cause "native thread" OOM — see `jvm/jvm-thread-dump.md`; resource leaks that build up to OOM in `code-review/cr-resource-leak.md`.

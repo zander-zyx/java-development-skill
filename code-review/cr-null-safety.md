@@ -171,4 +171,4 @@ Now no `OrderRequest` instance can exist with null fields — the bug is impossi
 - **`Optional` performance**: it's an object allocation per call; fine for return types, inappropriate in hot inner loops or fields. Don't over-apply.
 - **Checked exceptions vs Optional**: for "expected absence" use `Optional`; for "exceptional failure" throw. Don't return `Optional.empty()` for an error the caller must distinguish from a normal empty case.
 - **JDK patterns**: `Objects.requireNonNull(obj, msg)` validates non-null at the top of a method and throws NPE with a clear message — use it for `@NonNull` params.
-- **Cross-ref**: record validation interacts with DTO patterns in `sb-project-structure.md`; Optional return from JPA/MP repositories in `sb-jpa-repository.md` / `sb-mybatis-plus.md`.
+- **Cross-ref**: record validation interacts with DTO patterns in `spring-boot/sb-project-structure.md`; Optional return from JPA/MP repositories in `spring-boot/sb-jpa-repository.md` / `spring-boot/sb-mybatis-plus.md`.

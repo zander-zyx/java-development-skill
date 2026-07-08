@@ -102,7 +102,7 @@ public static Config get(String key) {
 }
 ```
 
-Static mutable state is shared across all threads (see `cr-concurrency.md`), survives between tests (pollution), and makes the code impossible to mock. Inject as a bean instead.
+Static mutable state is shared across all threads (see `code-review/cr-concurrency.md`), survives between tests (pollution), and makes the code impossible to mock. Inject as a bean instead.
 
 ### `instanceof` chains where polymorphism belongs
 
@@ -198,4 +198,4 @@ Enums are singletons; mutable enum state is global mutable state. Keep enums imm
 
 - **This file is the catch-all**. When reviewing code that doesn't trigger the topic-specific rules (`cr-concurrency`, `cr-resource-leak`, `cr-null-safety`, `cr-equals-hashcode`, `cr-stream-pitfalls`), run through this checklist.
 - **Project-specific rules**: if the project has lint configs (Checkstyle, SpotBugs, Error Prone), respect them — they encode these rules automatically.
-- **Cross-ref**: shared mutable static is detailed in `cr-concurrency.md`; logging in async/reactive context relates to `sb-actuator-health.md` (MDC + traceId).
+- **Cross-ref**: shared mutable static is detailed in `code-review/cr-concurrency.md`; logging in async/reactive context relates to `spring-boot/sb-actuator-health.md` (MDC + traceId).

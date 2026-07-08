@@ -96,7 +96,7 @@ project's conventions.
 > ```
 
 The skill turns a vague "review this" into a structured checklist pass
-(`cr-concurrency.md` has an explicit checklist).
+(`code-review/cr-concurrency.md` has an explicit checklist).
 
 ---
 

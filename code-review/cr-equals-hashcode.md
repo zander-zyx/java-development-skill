@@ -161,4 +161,4 @@ return Objects.equals(this.id, other.id);          // or this.id.equals(other.id
 - **Prefer `record`** for value types/DTOs — eliminates this whole category of bug.
 - **Business-key equality**: if you want two Orders with the same `orderNo` to be equal regardless of id, use `orderNo` in equals/hashCode — but make `orderNo` immutable and unique.
 - **`Objects.equals(a, b)`** is null-safe: returns true if both null, false if only one null, otherwise `a.equals(b)`. Always prefer it over `.equals` with manual null checks.
-- **Cross-ref**: entity equality is detailed in `sb-jpa-repository.md` and `sb-mybatis-plus.md`; DTO-as-record in `sb-project-structure.md`.
+- **Cross-ref**: entity equality is detailed in `spring-boot/sb-jpa-repository.md` and `spring-boot/sb-mybatis-plus.md`; DTO-as-record in `spring-boot/sb-project-structure.md`.

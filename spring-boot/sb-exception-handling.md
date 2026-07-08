@@ -179,4 +179,4 @@ Wrap or map it: either catch in the service and rethrow as a domain exception, o
 - **Order of handlers**: Spring picks the most specific `@ExceptionHandler` for the thrown type. Put the catch-all `Exception.class` handler last; it can't be overridden by specificity alone if a more specific handler exists.
 - **Async exceptions**: `@RestControllerAdvice` does NOT catch exceptions thrown from `@Async` methods or `CompletableFuture` chains. Handle those inside the async boundary or via `AsyncUncaughtExceptionHandler`.
 - **Spring 6 ProblemDetail** is the modern path. Pre-3.x you'd hand-roll an `ErrorResponse` record — still fine, but ProblemDetail is the convention going forward.
-- **Cross-ref**: traceId/MDC setup relates to `sb-actuator-health.md` observability; validation patterns also appear in input DTOs in `sb-project-structure.md`.
+- **Cross-ref**: traceId/MDC setup relates to `spring-boot/sb-actuator-health.md` observability; validation patterns also appear in input DTOs in `spring-boot/sb-project-structure.md`.

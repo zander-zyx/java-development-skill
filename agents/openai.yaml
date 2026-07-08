@@ -1,0 +1,4 @@
+interface:
+  display_name: "Java Development"
+  short_description: "Java, Spring Boot, tests, review, and JVM troubleshooting"
+  default_prompt: "Use $java-development to help with Java or Spring Boot development, testing, code review, or JVM troubleshooting."

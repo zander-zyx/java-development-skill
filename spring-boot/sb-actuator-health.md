@@ -188,4 +188,4 @@ No timeout on probes — if a health check hangs, K8s times out and the pod stay
 - **show-details = `never`**: hides health detail entirely. `when_authorized` (default) reveals details only to authorized callers. Use `never` in strictly prod if you don't want to leak indicator names.
 - **Probe caching**: K8s calls probes frequently; keep `HealthIndicator` implementations cheap or cache their result with a short TTL.
 - **Heapdump access**: never expose `/heapdump` to the network — it's a full memory image, contains all data including secrets. Restrict to localhost or JMX.
-- **Cross-ref**: traceId in error responses relates to `sb-exception-handling.md`; HTTP client metrics tie into `sb-rest-client.md`.
+- **Cross-ref**: traceId in error responses relates to `spring-boot/sb-exception-handling.md`; HTTP client metrics tie into `spring-boot/sb-rest-client.md`.

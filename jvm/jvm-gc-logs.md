@@ -53,7 +53,7 @@ What each part means:
 
 **2. Heap occupancy before/after GC**
 - After young GC, young-gen should be mostly empty.
-- After old-gen GC, old-gen should drop. If old-gen **never drops** despite GC → memory leak (see `jvm-oom-analysis.md`).
+- After old-gen GC, old-gen should drop. If old-gen **never drops** despite GC → memory leak (see `jvm/jvm-oom-analysis.md`).
 
 **3. GC cause**
 - `Allocation Failure` — normal young-gen trigger.
@@ -141,4 +141,4 @@ When analyzing GC logs:
 - **Java 9+ unified logging** replaced the Java 8 `-XX:+PrintGCDetails` flags entirely. Don't use the old syntax on Java 17+.
 - **Log volume**: ~1-10MB/hour for a typical service. Rotation (`filecount=10,filesize=50M`) keeps it bounded.
 - **GC logs + Micrometer**: `jvm.gc.pause`, `jvm.gc.live.data.size` metrics expose the same info as time-series for dashboards. Pairs well with logs for forensics.
-- **Cross-ref**: tuning in response to log findings in `jvm-gc-tuning.md`; OOM investigation in `jvm-oom-analysis.md`; container memory sizing in `sb-config-profiles.md`.
+- **Cross-ref**: tuning in response to log findings in `jvm/jvm-gc-tuning.md`; OOM investigation in `jvm/jvm-oom-analysis.md`; container memory sizing in `spring-boot/sb-config-profiles.md`.

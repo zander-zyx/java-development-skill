@@ -117,7 +117,7 @@ at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:...)
 ```
 Fix: investigate slow queries / unclosed connections, or tune pool size.
 
-**One thread RUNNABLE with the same stack forever** — infinite loop or hot spin. Same stack across dumps = spinning. Sample CPU (see `jvm-cpu-high.md`) to confirm.
+**One thread RUNNABLE with the same stack forever** — infinite loop or hot spin. Same stack across dumps = spinning. Sample CPU (see `jvm/jvm-cpu-high.md`) to confirm.
 
 **Many threads BLOCKED on one monitor** — coarse lock contention. The "owner" thread's stack tells you what it's doing while holding the lock.
 
@@ -145,4 +145,4 @@ When investigating a hang:
 - **`jstack -F`**: forces a dump on a hung JVM via `SIGQUIT`-equivalent. Use when normal `jstack` times out.
 - **Native threads**: a JVM thread maps to an OS thread (carrier thread in virtual-thread model). Native hangs (NIO, JNI) may not show useful Java frames — pair with OS-level tools (`perf`, `strace`).
 - **Virtual threads (Java 21+)**: `jcmd <pid> Thread.print` includes virtual threads; they're cheap so a high count is normal. Look for *carrier thread* pinning instead.
-- **Cross-ref**: high CPU often co-occurs with hangs — `jvm-cpu-high.md`; resource/thread leaks that lead here in `code-review/cr-resource-leak.md` and `code-review/cr-concurrency.md`.
+- **Cross-ref**: high CPU often co-occurs with hangs — `jvm/jvm-cpu-high.md`; resource/thread leaks that lead here in `code-review/cr-resource-leak.md` and `code-review/cr-concurrency.md`.

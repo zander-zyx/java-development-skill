@@ -109,7 +109,7 @@ assertThat(orders)
 assertEquals(3, orders.size());
 ```
 
-See `test-coverage-assertj.md` for AssertJ patterns in depth.
+See `testing/test-coverage-assertj.md` for AssertJ patterns in depth.
 
 ### Expected exceptions
 
@@ -209,4 +209,4 @@ class OrderServiceTest {
 
 - **JUnit 4 → 5**: import paths differ (`org.junit.jupiter.api.*` vs `org.junit.*`). Mixing them in one test class breaks. Use 5 only.
 - **Spring Boot Test**: `@SpringBootTest` includes `@ExtendWith(SpringExtension.class)` — don't add it again.
-- **Cross-ref**: mocking with Mockito in `test-mockito.md`; AssertJ depth in `test-coverage-assertj.md`; Spring slices in `test-spring-boot-test.md`.
+- **Cross-ref**: mocking with Mockito in `testing/test-mockito.md`; AssertJ depth in `testing/test-coverage-assertj.md`; Spring slices in `testing/test-spring-boot-test.md`.

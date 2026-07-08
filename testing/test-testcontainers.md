@@ -177,4 +177,4 @@ The test runs in a transaction that Spring rolls back, so the DB is clean for th
 - **Docker required**: Testcontainers needs Docker on the machine running tests. CI must have Docker-in-Docker or a sidecar.
 - **Spring Boot 3.1 `@ServiceConnection`**: replaces `@DynamicPropertySource` for many container types (MySQL, PostgreSQL, Redis, Kafka, MongoDB, etc.).
 - **CI speed**: with reuse + parallel test execution, container-based tests can run nearly as fast as in-memory ones. Without reuse, they're slow.
-- **Cross-ref**: integration test layering in `test-layering.md`; MyBatis-Plus + schema in `sb-mybatis-plus.md`; datasource config in `sb-config-profiles.md`.
+- **Cross-ref**: integration test layering in `testing/test-layering.md`; MyBatis-Plus + schema in `spring-boot/sb-mybatis-plus.md`; datasource config in `spring-boot/sb-config-profiles.md`.

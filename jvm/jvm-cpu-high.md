@@ -111,9 +111,9 @@ Fix: anchor patterns, avoid nested quantifiers, set a matching timeout, or use a
 **Unintended serialization / reflection in a hot path**:
 - Jackson `ObjectMapper.readValue` called per-request — but with `readValue(slowJson, Object.class)` triggering type discovery each call.
 
-**GC thrashing** (looks like CPU): if the GC log shows frequent collections and CPU is high, the GC is the consumer — see `jvm-gc-tuning.md`.
+**GC thrashing** (looks like CPU): if the GC log shows frequent collections and CPU is high, the GC is the consumer — see `jvm/jvm-gc-tuning.md`.
 
-**Lock spinning**: in modern JDKs, contended locks spin briefly before parking — sustained contention can show as CPU. The thread state is `RUNNABLE` but the stack shows monitor operations. See `jvm-thread-dump.md`.
+**Lock spinning**: in modern JDKs, contended locks spin briefly before parking — sustained contention can show as CPU. The thread state is `RUNNABLE` but the stack shows monitor operations. See `jvm/jvm-thread-dump.md`.
 
 ### Step 6: Verify the fix
 
@@ -137,4 +137,4 @@ When investigating high CPU:
 
 - **Container CPU limits**: K8s CPU limits throttle via CFS; the JVM sees 100% CPU but is throttled. Check `container_cpu_cfs_throttled_seconds_total` — if high, the limit is too low, not the app misbehaving.
 - **async-profiler permissions**: needs `kernel.perf_event_paranoid <= 1` on Linux for perf-events mode; otherwise runs in bytecode-instrumentation mode (still works, less accurate).
-- **Cross-ref**: thread dump mechanics in `jvm-thread-dump.md`; GC-as-CPU-cause in `jvm-gc-tuning.md`; regex backtracking relates to the resource-review in `code-review/cr-anti-patterns.md`.
+- **Cross-ref**: thread dump mechanics in `jvm/jvm-thread-dump.md`; GC-as-CPU-cause in `jvm/jvm-gc-tuning.md`; regex backtracking relates to the resource-review in `code-review/cr-anti-patterns.md`.

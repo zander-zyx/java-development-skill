@@ -169,4 +169,4 @@ logging:
 
 - **Context caching**: Spring caches test application contexts by their configuration signature. Keep the signature stable across tests to maximize cache hits.
 - **`@DirtiesContext`**: forces context teardown after the test class. Use sparingly — it's expensive. Prefer cleanup via `@Transactional` rollback.
-- **Cross-ref**: layering rationale in `test-layering.md`; Testcontainers in `test-testcontainers.md`; Mockito in `test-mockito.md`.
+- **Cross-ref**: layering rationale in `testing/test-layering.md`; Testcontainers in `testing/test-testcontainers.md`; Mockito in `testing/test-mockito.md`.

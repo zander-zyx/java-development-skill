@@ -189,4 +189,4 @@ When reviewing Java code, flag:
 
 - **Java Memory Model**: `volatile` guarantees visibility and prevents instruction reordering; it does NOT make `++` atomic. Use `Atomic*` for compound actions.
 - **`synchronized(this)`** vs `synchronized(lock)`: locking `this` exposes your lock to external callers who might lock you too. Use a private final lock object.
-- **Cross-ref**: lock-held-too-long ties to `sb-jpa-repository.md` transactions; `ThreadLocal` removal pattern relates to the cleanup rule in `cr-resource-leak.md`.
+- **Cross-ref**: lock-held-too-long ties to `spring-boot/sb-jpa-repository.md` transactions; `ThreadLocal` removal pattern relates to the cleanup rule in `code-review/cr-resource-leak.md`.
