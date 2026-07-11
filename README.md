@@ -33,6 +33,12 @@ When this skill is active, the agent should:
 - Preserve existing persistence choices: MyBatis, MyBatis-Plus, JPA/Hibernate, JDBC, jOOQ, or other project-specific stacks.
 - For non-trivial work, report change reason, impact scope, verified items, unverified items, and how to verify.
 
+## What this skill is not
+
+- Not a Spring Boot-specific template or a starter-project generator.
+- Not a style enforcer that rewrites build tools, persistence layers, Java versions, or frameworks.
+- Not a replacement for repository-specific `AGENTS.md`, architecture docs, CI rules, or business requirements.
+
 ## Repository layout
 
 ```text
@@ -92,8 +98,8 @@ These are defaults, not forced migrations:
 | File | Impact | Purpose |
 |---|---|---|
 | `spring-boot/sb-dependency-injection.md` | HIGH | Beans, DI, constructor injection, Lombok strategy |
-| `spring-boot/sb-project-structure.md` | MEDIUM | Package layout and controller/service/repository boundaries |
-| `spring-boot/sb-config-profiles.md` | HIGH | Config, profiles, secrets, config import |
+| `spring-boot/sb-project-structure.md` | HIGH | Package layout and controller/service/repository boundaries |
+| `spring-boot/sb-config-profiles.md` | MEDIUM | Config, profiles, secrets, config import |
 | `spring-boot/sb-mybatis-plus.md` | HIGH | MyBatis/MyBatis-Plus mapper/service/query patterns |
 | `spring-boot/sb-jpa-repository.md` | HIGH | JPA/Hibernate repositories, N+1, lazy loading, entity identity |
 | `spring-boot/sb-exception-handling.md` | HIGH | REST errors, validation errors, `ProblemDetail` |
@@ -110,7 +116,7 @@ These are defaults, not forced migrations:
 | `code-review/cr-concurrency.md` | HIGH | Thread safety, locks, `ThreadLocal`, transaction proxy risks |
 | `code-review/cr-resource-leak.md` | HIGH | Closeables, JDBC, locks, thread pools, leak risks |
 | `code-review/cr-null-safety.md` | HIGH | NPE prevention, nullable contracts, `Optional` pitfalls |
-| `code-review/cr-equals-hashcode.md` | HIGH | Equality, hashing, entity identity, collection behavior |
+| `code-review/cr-equals-hashcode.md` | MEDIUM | Equality, hashing, entity identity, collection behavior |
 | `code-review/cr-stream-pitfalls.md` | MEDIUM | Stream API, parallel stream, lambda side effects |
 | `code-review/cr-security.md` | HIGH | Injection, secrets, crypto, unsafe deserialization, SSRF, authorization gaps |
 

@@ -1,5 +1,5 @@
 {
-  "version": "0.0.5",
+  "version": "0.0.6",
   "organization": "personal",
   "date": "July 2026",
   "abstract": "Framework-neutral Java/JVM development agent skill covering plain Java, libraries, CLI tools, API design, exception handling, Java version modernization, Maven and Gradle build hygiene, optional Spring Boot development and migrations, Java code/security review, testing with JUnit/Mockito/Testcontainers, and JVM troubleshooting. Defaults are project-aware: preserve existing stack, build tool, Java version, logging, persistence, and Lombok usage unless the user asks to change them.",

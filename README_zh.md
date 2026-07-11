@@ -33,6 +33,12 @@
 - 保留现有持久层选择：MyBatis、MyBatis-Plus、JPA/Hibernate、JDBC、jOOQ 或项目自定义栈。
 - 非平凡改动必须汇报：修改原因、影响范围、已验证、未验证、如何验证。
 
+## 这个 skill 不是什么
+
+- 不是 Spring Boot 专用模板，也不是 starter 项目生成器。
+- 不是强制改写构建工具、持久层、Java 版本或框架的风格检查器。
+- 不能替代仓库内的 `AGENTS.md`、架构文档、CI 规则或业务需求。
+
 ## 仓库结构
 
 ```text
@@ -92,8 +98,8 @@ java-development/
 | 文件 | 影响 | 用途 |
 |---|---|---|
 | `spring-boot/sb-dependency-injection.md` | HIGH | Bean、DI、构造器注入、Lombok 策略 |
-| `spring-boot/sb-project-structure.md` | MEDIUM | 包结构与 controller/service/repository 边界 |
-| `spring-boot/sb-config-profiles.md` | HIGH | 配置、profile、密钥、config import |
+| `spring-boot/sb-project-structure.md` | HIGH | 包结构与 controller/service/repository 边界 |
+| `spring-boot/sb-config-profiles.md` | MEDIUM | 配置、profile、密钥、config import |
 | `spring-boot/sb-mybatis-plus.md` | HIGH | MyBatis/MyBatis-Plus mapper/service/query 模式 |
 | `spring-boot/sb-jpa-repository.md` | HIGH | JPA/Hibernate repository、N+1、懒加载、实体身份 |
 | `spring-boot/sb-exception-handling.md` | HIGH | REST 错误、参数校验错误、`ProblemDetail` |
@@ -110,7 +116,7 @@ java-development/
 | `code-review/cr-concurrency.md` | HIGH | 线程安全、锁、`ThreadLocal`、事务代理风险 |
 | `code-review/cr-resource-leak.md` | HIGH | Closeable、JDBC、锁、线程池、泄漏风险 |
 | `code-review/cr-null-safety.md` | HIGH | NPE 防护、nullable 契约、`Optional` 陷阱 |
-| `code-review/cr-equals-hashcode.md` | HIGH | 相等性、哈希、实体身份、集合行为 |
+| `code-review/cr-equals-hashcode.md` | MEDIUM | 相等性、哈希、实体身份、集合行为 |
 | `code-review/cr-stream-pitfalls.md` | MEDIUM | Stream API、parallel stream、lambda 副作用 |
 | `code-review/cr-security.md` | HIGH | 注入、密钥、加密、不安全反序列化、SSRF、鉴权漏洞 |
 

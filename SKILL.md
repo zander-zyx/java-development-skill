@@ -16,6 +16,8 @@ Router skill for general Java/JVM work. Treat Spring Boot as one supported frame
 - For Spring Boot projects with unknown versions, use Spring Boot 3.x / `jakarta.*` / Java 17+ as the compatibility baseline. For existing projects, keep their current supported line unless migration is requested.
 - For a new China-style Spring Boot service with no persistence decision, MyBatis-Plus is acceptable; do not migrate an existing JPA/plain-MyBatis project to match that preference.
 - Prefer constructor injection in DI frameworks. Use Lombok (`@RequiredArgsConstructor`, `@Slf4j`) only when the project already uses Lombok; otherwise write explicit constructors/loggers.
+- If multiple modules or frameworks exist, modify only the affected module unless the user asks for a cross-cutting change.
+- Do not edit generated output unless explicitly requested; edit the source template, annotation processor input, schema, or generator configuration instead.
 
 ## Loading Rules
 
@@ -41,12 +43,12 @@ Start with the smallest useful set:
 
 | Task signal | Read first | Add if needed |
 |---|---|---|
-| Unknown Java project, framework-neutral edit, library/CLI code | `core/java-general-development.md` | build-tools/test/review rule in use |
+| Unknown Java project, framework-neutral edit, library/CLI code | `core/java-general-development.md` | add matching `build-tools/...`, `testing/...`, or `code-review/...` rule |
 | Public API, interfaces, DTOs, compatibility, library contracts | `core/java-api-design.md` | `code-review/cr-null-safety.md` |
 | Exceptions, retries, interrupts, failure boundaries | `core/java-exception-handling.md` | `code-review/cr-resource-leak.md` |
-| Java 8/11/17/21 upgrade, newer syntax, toolchain | `core/java-version-modernization.md` | matching build rule |
-| Maven `pom.xml`, dependencies, BOM, plugins, Java release | `build-tools/build-maven-dependencies.md` | migration/test/framework rule in use |
-| Gradle `build.gradle(.kts)`, wrapper, version catalog, toolchain | `build-tools/build-gradle-dependencies.md` | migration/test/framework rule in use |
+| Java 8/11/17/21 upgrade, newer syntax, toolchain | `core/java-version-modernization.md` | `build-tools/build-maven-dependencies.md` or `build-tools/build-gradle-dependencies.md` |
+| Maven `pom.xml`, dependencies, BOM, plugins, Java release | `build-tools/build-maven-dependencies.md` | relevant `spring-boot/...`, `testing/...`, or migration rule |
+| Gradle `build.gradle(.kts)`, wrapper, version catalog, toolchain | `build-tools/build-gradle-dependencies.md` | relevant `spring-boot/...`, `testing/...`, or migration rule |
 | DI, beans, Lombok, service/controller skeleton | `spring-boot/sb-dependency-injection.md` | `spring-boot/sb-project-structure.md` |
 | Package layout, controller/service/repository boundaries | `spring-boot/sb-project-structure.md` | `spring-boot/sb-exception-handling.md` |
 | `application.yml`, profiles, secrets, config import | `spring-boot/sb-config-profiles.md` | `spring-boot/sb-actuator-health.md` |
@@ -55,21 +57,21 @@ Start with the smallest useful set:
 | REST API error handling, validation errors | `spring-boot/sb-exception-handling.md` | `code-review/cr-null-safety.md` |
 | HTTP clients, RestClient, WebClient, RestTemplate | `spring-boot/sb-rest-client.md` | `spring-boot/sb-config-profiles.md` |
 | Actuator, health, metrics, probes | `spring-boot/sb-actuator-health.md` | `jvm/jvm-gc-logs.md` |
-| Spring Boot 2->3, `javax`/`jakarta` migration | `spring-boot/sb-migration-2-to-3.md` | build + rest-client rules |
-| Spring Boot 3->4, Framework 7/Jakarta/Servlet baseline | `spring-boot/sb-migration-3-to-4.md` | build + rest-client/test rules |
+| Spring Boot 2->3, `javax`/`jakarta` migration | `spring-boot/sb-migration-2-to-3.md` | `build-tools/...` plus `spring-boot/sb-rest-client.md` when HTTP clients are affected |
+| Spring Boot 3->4, Framework 7/Jakarta/Servlet baseline | `spring-boot/sb-migration-3-to-4.md` | `build-tools/...`, `spring-boot/sb-rest-client.md`, and affected `testing/...` rules |
 | Java code review, general smell scan | `code-review/cr-anti-patterns.md` | specific review files below |
-| Security review, secrets, injection, crypto, deserialization, SSRF | `code-review/cr-security.md` | config/build/framework rule in use |
+| Security review, secrets, injection, crypto, deserialization, SSRF | `code-review/cr-security.md` | `spring-boot/sb-config-profiles.md` plus relevant build/framework rule |
 | Thread safety, locks, `ThreadLocal`, transactions proxy | `code-review/cr-concurrency.md` | `code-review/cr-resource-leak.md` |
 | Closeable, JDBC, locks, thread pools, leaks | `code-review/cr-resource-leak.md` | `jvm/jvm-oom-analysis.md` |
-| NPE, `Optional`, nullable contracts | `code-review/cr-null-safety.md` | framework error rule in use |
-| `equals`, `hashCode`, entity identity | `code-review/cr-equals-hashcode.md` | persistence rule in use |
+| NPE, `Optional`, nullable contracts | `code-review/cr-null-safety.md` | `core/java-exception-handling.md` or framework error rule |
+| `equals`, `hashCode`, entity identity | `code-review/cr-equals-hashcode.md` | `spring-boot/sb-jpa-repository.md` or `spring-boot/sb-mybatis-plus.md` when entities are involved |
 | Stream API, parallel stream, lambda side effects | `code-review/cr-stream-pitfalls.md` | `code-review/cr-concurrency.md` |
-| Test strategy, unit/slice/integration choice | `testing/test-layering.md` | one test framework file |
+| Test strategy, unit/slice/integration choice | `testing/test-layering.md` | `testing/test-junit5.md`, `testing/test-mockito.md`, `testing/test-spring-boot-test.md`, or `testing/test-testcontainers.md` |
 | JUnit 5 lifecycle, parameterized tests | `testing/test-junit5.md` | `testing/test-coverage-assertj.md` |
 | Mockito mocks, spies, static mocks | `testing/test-mockito.md` | `testing/test-layering.md` |
 | Testcontainers, real DB/Redis/Kafka | `testing/test-testcontainers.md` | `testing/test-spring-boot-test.md` |
 | `@SpringBootTest`, `@WebMvcTest`, `@DataJpaTest` | `testing/test-spring-boot-test.md` | `testing/test-testcontainers.md` |
-| AssertJ, JaCoCo, coverage floor | `testing/test-coverage-assertj.md` | framework-specific test file |
+| AssertJ, JaCoCo, coverage floor | `testing/test-coverage-assertj.md` | affected `testing/...` framework rule |
 | OOM, heap dump, memory leak | `jvm/jvm-oom-analysis.md` | `code-review/cr-resource-leak.md` |
 | High CPU, hot thread, profiling | `jvm/jvm-cpu-high.md` | `jvm/jvm-thread-dump.md` |
 | Hang, deadlock, thread leak | `jvm/jvm-thread-dump.md` | `code-review/cr-concurrency.md` |
