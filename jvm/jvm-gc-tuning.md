@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: Right GC + heap sizing prevents stop-the-world pauses that break SLAs
 tags: gc, g1, zgc, parallel, heap-sizing, pauses, latency
 description: Default to G1 (Java 9+); use ZGC for low-latency large heaps; size heap and pause goals before micro-tuning
-alwaysApply: true
 ---
 
 ## GC Selection and Tuning

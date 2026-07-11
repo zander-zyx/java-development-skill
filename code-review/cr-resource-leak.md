@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: Leaked streams/connections/locks exhaust file descriptors or pool slots and crash the JVM under load
 tags: resource-leak, try-with-resources, stream, connection, lock, jdbc
 description: Every Closeable/Lock/ThreadLocal must be released in finally; use try-with-resources; never rely on GC
-alwaysApply: true
 ---
 
 ## Resource Leaks

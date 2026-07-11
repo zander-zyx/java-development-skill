@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: Slices give fast focused tests; @SpringBootTest is overkill for most controller/mapper verification
 tags: springboottest, webmvctest, datajpatest, mockbean, slice
 description: Use @WebMvcTest for controllers, @DataJpaTest/@MybatisPlusTest for persistence, @SpringBootTest for full wiring
-alwaysApply: true
 ---
 
 ## Spring Boot Test Slices

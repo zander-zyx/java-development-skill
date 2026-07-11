@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: Right layer = fast feedback + real coverage; wrong layer = slow suite that misses bugs
 tags: testing, layering, unit, integration, slice, pyramid
 description: Use unit tests for logic, Spring slices for wiring, integration tests for boundaries; aim for the pyramid not the cone
-alwaysApply: true
 ---
 
 ## Test Layering Strategy

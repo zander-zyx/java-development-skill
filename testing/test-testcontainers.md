@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: Testcontainers gives you a real DB/Redis/Kafka in tests, catching SQL and protocol bugs that in-memory doubles miss
 tags: testcontainers, integration, docker, serviceconnection, mysql, redis
 description: Use @ServiceConnection (Spring Boot 3.1+) to auto-wire containers; reuse containers to keep tests fast
-alwaysApply: true
 ---
 
 ## Testcontainers for Real Boundaries

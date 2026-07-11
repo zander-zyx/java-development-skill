@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: Pinpoint the hot thread with top -Hp + jstack, then sample with async-profiler for the hot method
 tags: cpu, high-cpu, top-hp, jstack, async-profiler, flamegraph
 description: Find the hot OS thread with top -Hp, map to Java thread via nid in jstack, then profile with async-profiler
-alwaysApply: true
 ---
 
 ## High CPU Troubleshooting

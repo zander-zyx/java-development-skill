@@ -1,10 +1,9 @@
 ---
 title: General Anti-Patterns
 impact: MEDIUM
-impactDescription: Catch-all review rules: magic values, swallowed exceptions, log abuse, mutable statics, premature optimization
+impactDescription: "Catch-all review rules: magic values, swallowed exceptions, log abuse, mutable statics, premature optimization"
 tags: anti-patterns, magic-values, exceptions, logging, static, review
 description: Catch-all review checklist for magic values, swallowed exceptions, log abuse, mutable static, instanceof chains
-alwaysApply: true
 ---
 
 ## General Anti-Patterns

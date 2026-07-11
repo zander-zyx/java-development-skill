@@ -4,7 +4,6 @@ impact: MEDIUM
 impactDescription: Stream misuse causes silent wrong results, shared-mutable bugs in parallel, and one-shot stream errors
 tags: stream, lambda, parallel-stream, functional, collect
 description: Avoid parallel stream for most cases; don't reuse streams; don't mutate shared state in lambdas; understand side-effects
-alwaysApply: true
 ---
 
 ## Stream API Pitfalls

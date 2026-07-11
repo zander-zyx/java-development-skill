@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: JUnit 5 lifecycle, parameterized tests, and extensions unlock fast readable tests
 tags: junit5, testing, lifecycle, parameterized, extension
 description: Use JUnit 5 lifecycle (BeforeEach/All), parameterized tests for data-driven cases, extensions over inheritance
-alwaysApply: true
 ---
 
 ## JUnit 5 Patterns

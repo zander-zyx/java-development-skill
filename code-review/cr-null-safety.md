@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: NPE is the #1 Java runtime exception; disciplined Optional + annotations prevent it
 tags: null, npe, optional, nullable, null-check
 description: Use Optional only as a return type; annotate fields/params with @Nullable; never pass null into APIs
-alwaysApply: true
 ---
 
 ## Null Safety and Optional

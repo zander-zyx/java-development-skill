@@ -4,7 +4,6 @@ impact: MEDIUM
 impactDescription: GC logs tell you pause frequency, GC cause, and whether tuning helps — the diagnostic for memory pressure
 tags: gc-logs, xlog, gceasy, pauses, memory-pressure
 description: Enable -Xlog:gc* in prod; read pause times, GC cause, and old-gen occupancy; upload to GCEasy for visualization
-alwaysApply: true
 ---
 
 ## GC Log Interpretation

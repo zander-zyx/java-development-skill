@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: Prevents field-injection pitfalls, enables immutability and easy testing
 tags: di, constructor-injection, lombok, beans, spring
 description: Use constructor injection via final fields + @RequiredArgsConstructor; restrict Lombok to @RequiredArgsConstructor/@Slf4j/@Data
-alwaysApply: true
 ---
 
 ## Constructor Injection with Lombok Essentials

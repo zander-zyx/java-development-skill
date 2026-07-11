@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: MyBatis-Plus is the China mainstream; correct usage avoids SQL injection, pagination bugs, and Lombok-equals traps
 tags: mybatis-plus, mybatis, persistence, basemapper, iservice, lambda-query, pagination, logical-delete
 description: Use BaseMapper/IService with LambdaQueryWrapper, configure pagination + logical delete plugins, prefer LambdaQuery to avoid column-name typos
-alwaysApply: true
 ---
 
 ## MyBatis-Plus Best Practices (Default Persistence Layer)

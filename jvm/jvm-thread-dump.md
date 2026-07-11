@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: A thread dump reveals hangs, deadlocks, and thread leaks — the diagnostic for "app is stuck"
 tags: thread-dump, deadlock, jstack, jcmd, blocked, hung
 description: Capture multiple thread dumps 10s apart; look for BLOCKED threads and deadlock detection; count threads for leaks
-alwaysApply: true
 ---
 
 ## Thread Dump and Deadlock Detection

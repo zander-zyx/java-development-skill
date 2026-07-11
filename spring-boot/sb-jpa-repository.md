@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: Prevents N+1 queries, lazy-loading exceptions, broken transactions, and bad equals/hashCode
 tags: jpa, hibernate, n-plus-1, transactional, lazy-loading, uuid, entity
 description: Avoid N+1 with JOIN FETCH/EntityGraph, scope @Transactional at service layer, disable open-in-view, use entity-aware equals
-alwaysApply: true
 ---
 
 ## JPA and Hibernate Best Practices

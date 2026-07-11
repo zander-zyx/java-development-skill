@@ -1,61 +1,53 @@
 # 使用示例
 
-安装 skill 后，可以把下面的 prompt 直接粘贴到 Claude Code / Codex / OpenCode / ZCode 里。每个示例都展示了 skill **加载后** Agent 实际会做的事。
+安装 skill 后可以直接粘贴这些 prompt。关键行为是：Agent 先识别 Java 项目类型，再只加载匹配的规则文件。
 
-Skill 通过 `description` 字段的关键词自动触发 —— 你**不需要**明说"Java"，也不需要引用任何文件名。
+**中文** | [English](./usage-examples.md)
 
-[English](./usage-examples.md) | **中文**
+## 示例 1 —— 普通 Java / 类库代码
 
----
+**Prompt**
 
-## 示例 1 —— 编写 Spring Boot 服务（方向 A）
+> 重构这个 Java 工具类，但保持 Java 11 兼容，并且不要破坏 public API。
 
-**你输入：**
+**Skill 行为**
 
-> 帮我写一个 OrderService，要保存订单、调用支付，订单金额不能超过库存上限
+1. 加载 `core/java-general-development.md`。
+2. 先确认 Java target，再决定能不能使用新语法。
+3. 不假设项目使用 Spring、Lombok 或其他框架。
+4. 汇报最小编译/测试命令。
 
-**发生的过程：**
+## 示例 2 —— Maven 或 Gradle 构建改动
 
-1. Skill 因 "Service" + "保存订单" 触发。
-2. Agent 读取 `spring-boot/sb-dependency-injection.md` → 用**构造器注入 + `@RequiredArgsConstructor`**（不是字段 `@Autowired`）。
-3. Agent 读取 `spring-boot/sb-mybatis-plus.md` → 继承 `ServiceImpl`，写方法上加 `@Transactional(rollbackFor = Exception.class)`。
-4. Agent 读取 `spring-boot/sb-config-profiles.md` → 金额上限从 `@ConfigurationProperties` 取，而不是写死魔法值。
+**Prompt**
 
-**你得到的结果**（节选）：
+> 给这个项目加 AWS SDK 依赖，并确保依赖版本仍由统一位置管理。
 
-```java
-@Service
-@RequiredArgsConstructor
-@Slf4j
-public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
-        implements OrderService {
+**Skill 行为**
 
-    private final OrderProperties props;        // 类型安全的配置，不是 @Value
-    private final PaymentClient paymentClient;
+- Maven 项目：加载 `build-tools/build-maven-dependencies.md`，修改真正拥有版本的 parent/BOM/property。
+- Gradle 项目：加载 `build-tools/build-gradle-dependencies.md`，尊重 version catalog、platform、convention plugin。
+- 不会把 Maven 项目改成 Gradle，也不会把 Gradle 项目改成 Maven。
 
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public Order placeOrder(OrderRequest request) {
-        if (request.amount().compareTo(props.maxAmount()) > 0) {
-            throw new OrderAmountExceededException(props.maxAmount());
-        }
-        Order order = buildOrder(request);
-        save(order);                            // ServiceImpl#save，同一事务
-        paymentClient.charge(request);          // 同一事务，一起回滚
-        return order;
-    }
-}
-```
+## 示例 3 —— Spring Boot 功能
 
-如果没有 skill，模型可能写出字段 `@Autowired` 注入、用 `@Value` 取上限、漏掉 `@Transactional`。Skill 把它引导到项目约定的写法。
+**Prompt**
 
----
+> 新增一个 OrderService 接口，保存订单，并统一返回参数校验错误。
 
-## 示例 2 —— 代码审查（方向 B）
+**Skill 行为**
 
-**你输入：**
+1. 只在项目确实是 Spring Boot 时加载对应规则，例如 `spring-boot/sb-dependency-injection.md` 或 `spring-boot/sb-exception-handling.md`。
+2. 使用构造器注入。
+3. 只有项目已使用 Lombok 时才用 Lombok。
+4. 保留现有持久层选择：MyBatis、MyBatis-Plus、JPA 或其他方案。
+
+## 示例 4 —— 代码审查
+
+**Prompt**
 
 > 审查这个方法的线程安全：
+>
 > ```java
 > private Map<Long, Order> cache = new HashMap<>();
 > public Order get(Long id) {
@@ -63,121 +55,24 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order>
 > }
 > ```
 
-**发生的过程：**
+**Skill 行为**
 
-1. Skill 因 "线程安全" 触发。
-2. Agent 读取 `code-review/cr-concurrency.md` → 识别出跨线程共享的可变 `HashMap`。
-3. Agent 读取 `code-review/cr-anti-patterns.md` → 标出字段没加 `final`。
+1. 加载 `code-review/cr-concurrency.md`。
+2. 识别并发访问下共享可变 `HashMap` 的风险。
+3. 建议 `ConcurrentHashMap`；如果需要淘汰策略，则建议 Caffeine 等有界缓存。
 
-**你得到的结果：**
+## 示例 5 —— JVM 线上问题
 
-> ⚠ **竞态条件** —— 并发 `computeIfAbsent` 下 `HashMap` 会丢更新，扩容时甚至可能死循环。两个调用者同时进 `get()` 会把 map 改坏。
->
-> **修复：** 改用线程安全 Map，字段加 final：
-> ```java
-> private final Map<Long, Order> cache = new ConcurrentHashMap<>();
-> ```
->
-> 如果还需要容量上限和过期淘汰，用 `Caffeine`：
-> ```java
-> private final Cache<Long, Order> cache = Caffeine.newBuilder()
->         .maximumSize(10_000)
->         .build();
-> ```
+**Prompt**
 
-Skill 把一句模糊的"审查一下"变成了结构化的清单检查（`code-review/cr-concurrency.md` 里有专门的检查清单）。
+> 生产环境 CPU 很高，请求延迟尖刺。我们有 thread dump 和 GC 日志。
 
----
+**Skill 行为**
 
-## 示例 3 —— 测试搭建（方向 C）
-
-**你输入：**
-
-> 用 Testcontainers 配 MySQL，测我的 OrderMapper
-
-**发生的过程：**
-
-1. Skill 因 "Testcontainers" + "Mapper" 触发。
-2. Agent 读取 `testing/test-testcontainers.md` → 用 `@ServiceConnection`（Spring Boot 3.1+），而不是冗长的老式 `@DynamicPropertySource`。
-3. Agent 读取 `testing/test-layering.md` → 把它定位为集成测试，不是单元测试（Mapper 测试必须有真实 DB）。
-
-**你得到的结果：**
-
-```java
-@SpringBootTest
-@Testcontainers
-class OrderMapperTest {
-
-    @Container
-    @ServiceConnection                                  // 自动注入 url/user/pass
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8")
-            .withReuse(true);                           // 加速重复运行
-
-    @Autowired OrderMapper orderMapper;
-
-    @Test
-    void insertsAndSelects() {
-        Order o = new Order();
-        o.setUserId("u1");
-        o.setStatus("CREATED");
-        orderMapper.insert(o);
-
-        Order found = orderMapper.selectById(o.getId());
-        assertThat(found.getUserId()).isEqualTo("u1");
-    }
-}
-```
-
-没有 skill 时，模型常常会用 H2（这会掩盖 MySQL 特有的 SQL 问题）或冗长的 `@DynamicPropertySource` 样板代码。
-
----
-
-## 示例 4 —— 线上排障（方向 D）
-
-**你输入：**
-
-> 线上 OOM 了，怎么排查？服务跑了几小时就挂
-
-**发生的过程：**
-
-1. Skill 因 "OOM" + "线上" 触发。
-2. Agent 读取 `jvm/jvm-oom-analysis.md` → 走诊断流程。
-
-**你得到的结果：**
-
-> 首先，如果还没配置，**让下次崩溃时自动抓堆 dump**：
->
-> ```
-> -XX:+HeapDumpOnOutOfMemoryError
-> -XX:HeapDumpPath=/var/log/app/oom-%p.hprof
-> ```
->
-> 然后**按 OOM 报错信息分类** —— 不同类型修复方式完全不同：
->
-> | 报错 | 原因 |
-> |------|------|
-> | `Java heap space` | 堆泄漏 或 工作集过大 |
-> | `Metaspace` | 类加载器泄漏 |
-> | `Direct buffer memory` | NIO `ByteBuffer.allocateDirect` 没释放 |
->
-> 用 **Eclipse MAT** 打开 `.hprof`，看 **Dominator Tree（支配树）**，按 Retained Heap 排序。最上面的对象就是泄漏源。右键 → *Path to GC Roots* 找出谁在持有它。
->
-> 常见泄漏排查：无淘汰策略的静态缓存、没有 `remove()` 的 `ThreadLocal`、忘了反注册的监听器、一次性加载到内存的超大结果集。
->
-> 完整步骤见 `jvm/jvm-oom-analysis.md`。
-
-Skill 给出的是结构化的排障手册，而不是泛泛的通用建议。
-
----
+1. 先加载 `jvm/jvm-cpu-high.md`。
+2. 因为已有证据，再补充 `jvm/jvm-thread-dump.md` 和 `jvm/jvm-gc-logs.md`。
+3. 区分数据采集、诊断、临时止血和验证。
 
 ## 触发关键词
 
-Skill 会在以下任意关键词出现时自动加载（来自 SKILL.md 的 `description`）：
-
-- **Spring Boot**：`@RestController`、`@Service`、`@Repository`、`@Configuration`、`@SpringBootApplication`、`@TableName`、`@TableId`、`LambdaQueryWrapper`
-- **测试**：`JUnit 5`、`Mockito`、`AssertJ`、`Testcontainers`、`@SpringBootTest`、`@WebMvcTest`、`@DataJpaTest`
-- **代码审查**：`concurrency`、`thread safety`、`NPE`、`Optional`、`equals/hashCode`、`Stream`
-- **JVM**：`GC tuning`、`OOM`、`thread dump`、`deadlock`、`high CPU`、`heap dump`
-- **通用**：`Java`、`JVM`、`MyBatis-Plus`、`JPA`、`Maven`、`pom.xml`、`@Autowired`、`Lombok`、`jakarta.*`、`javax.*`
-
-如果某个 prompt 没触发，但你确实想强制加载，可以用你所用工具的 skill 调用命令（比如 ZCode 里 `/skill java-development <prompt>`）。
+Java/JVM 术语、Maven/Gradle 文件、Spring Boot 注解、MyBatis/JPA/Hibernate、JUnit/Mockito/Testcontainers、NPE/线程安全/equals/hashCode/security/密钥/注入等代码审查词，API 兼容性词，Java 升级词，以及 OOM/GC/thread dump/deadlock/high CPU 等 JVM 排障词都可以触发该 skill。

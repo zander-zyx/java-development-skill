@@ -4,7 +4,6 @@ impact: MEDIUM
 impactDescription: Broken equals/hashCode causes silent bugs in HashSet/HashMap — lost entries, wrong contains
 tags: equals, hashcode, contract, record, entity
 description: equals and hashCode must be consistent; never include mutable/derived fields; use id-based equality for JPA/MP entities
-alwaysApply: true
 ---
 
 ## equals and hashCode Contract

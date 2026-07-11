@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: A single @RestControllerAdvice gives consistent error responses and centralizes error logic
 tags: exceptions, restcontrolleradvice, error-responses, validation, problem-details
 description: Handle all exceptions in one @RestControllerAdvice; return RFC 7807 ProblemDetail; never leak stack traces
-alwaysApply: true
 ---
 
 ## Global Exception Handling

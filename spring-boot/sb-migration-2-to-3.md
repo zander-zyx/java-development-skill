@@ -4,22 +4,19 @@ impact: HIGH
 impactDescription: Migration breaks apps at 6 well-known points; knowing them turns a multi-day debug into a checklist
 tags: migration, spring-boot-2, spring-boot-3, jakarta, hibernate, native, sleuth
 description: Spring Boot 2.x→3.x has 6 key breaking changes — javax→jakarta, JDK 17, Hibernate 6, trailing-slash, HttpClient 5, observability
-alwaysApply: true
 ---
 
 ## Spring Boot 2.x to 3.x Migration
 
 Spring Boot 3.0 (Nov 2022) was the biggest breaking release since 1.x. Migration breaks at 6 predictable points. Work through them as a checklist.
 
-### Version timeline (as of July 2026)
+### Version posture
 
-| Line | Status |
-|------|--------|
-| **2.7.18** | Last 2.x release (2023-11). OSS support **ended**; commercial support extended to ~Jun 2029. |
-| **3.x** | Active. 3.4.x OSS ended (3.4.13 final); 3.5.x is the current active line. |
-| **4.1.0** | Current latest stable (Jun 2026), based on Spring Framework 7.0.8. |
+Do not treat this file as a release calendar. Before a real migration, verify the currently supported Spring Boot lines in the official Spring Boot documentation. The stable migration path remains conservative:
 
-If you're on 2.7, migrate to 3.x before considering 4.x. Spring Framework 7.0 (in SB4) deprecates `RestTemplate` in favor of `RestClient`; plan sync HTTP migrations accordingly (see `spring-boot/sb-rest-client.md`).
+1. Move older 2.x apps to the latest available 2.7.x first.
+2. Move from 2.7.x to a supported 3.x line and make tests green.
+3. Consider 4.x only after the app is healthy on 3.x; use `spring-boot/sb-migration-3-to-4.md` for that separate migration.
 
 ### The 6 breaking changes
 
@@ -164,5 +161,5 @@ The old mechanism still works in 3.x but is deprecated and on a removal track.
 ### Context
 
 - **Native Image**: SB3 makes GraalVM AOT a first-class feature (`spring-boot-maven-plugin` `native` goal). SB2's `spring-native` experiment is dead. Not a migration blocker, but a reason to move.
-- **Cross-ref**: HttpClient/RestClient selection in `spring-boot/sb-rest-client.md`; Hibernate 6 UUID/entity equality in `spring-boot/sb-jpa-repository.md`; MP starter artifact id (`mybatis-plus-spring-boot3-starter` vs `mybatis-plus-boot-starter`) in `spring-boot/sb-mybatis-plus.md`.
+- **Cross-ref**: build changes in `build-tools/build-maven-dependencies.md` or `build-tools/build-gradle-dependencies.md`; HttpClient/RestClient selection in `spring-boot/sb-rest-client.md`; Hibernate 6 UUID/entity equality in `spring-boot/sb-jpa-repository.md`; MP starter artifact id (`mybatis-plus-spring-boot3-starter` vs `mybatis-plus-boot-starter`) in `spring-boot/sb-mybatis-plus.md`.
 - **Source**: [Spring Boot 3.0 Migration Guide (wiki)](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide).

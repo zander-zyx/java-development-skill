@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: Wrong stubbing (over-mock, leaky verify) produces tests that pass but verify nothing
 tags: mockito, mocking, stubbing, verify, spy, mockstatic
 description: Stub what you need with lenient defaults; verify only behavior that matters; prefer stubbing over spying; mock static sparingly
-alwaysApply: true
 ---
 
 ## Mockito Patterns

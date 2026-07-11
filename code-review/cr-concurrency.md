@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: Concurrency bugs are non-deterministic — they pass tests and fail in prod under load, the hardest class to debug
 tags: concurrency, thread-safety, synchronized, lock, race-condition, atomic, threadlocal
 description: Audit for shared mutable state; use immutable/atomic/thread-confined data; check lock ordering and @Transactional proxy bypass
-alwaysApply: true
 ---
 
 ## Concurrency and Thread Safety

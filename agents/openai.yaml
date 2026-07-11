@@ -1,4 +1,4 @@
 interface:
-  display_name: "Java Development"
-  short_description: "Java, Spring Boot, tests, review, and JVM troubleshooting"
-  default_prompt: "Use $java-development to help with Java or Spring Boot development, testing, code review, or JVM troubleshooting."
+  display_name: "Java Development Agent"
+  short_description: "Framework-neutral Java, API design, Maven/Gradle, Spring Boot, tests, security review, and JVM troubleshooting"
+  default_prompt: "Use $java-development for Java or JVM work: plain Java, Maven/Gradle builds, Spring Boot, testing, API design, exception handling, security review, refactoring, dependencies, Java upgrades, or JVM troubleshooting. Preserve the existing project stack unless I ask to change it."

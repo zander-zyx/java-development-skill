@@ -4,7 +4,6 @@ impact: MEDIUM
 impactDescription: AssertJ's fluent assertions give readable tests and precise failure messages; coverage measures behavior not lines
 tags: assertj, coverage, jacoco, assertions, fluent
 description: Use AssertJ for fluent assertions; treat JaCoCo as a floor not a target; cover behavior not lines
-alwaysApply: true
 ---
 
 ## AssertJ and Coverage

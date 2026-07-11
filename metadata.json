@@ -1,21 +1,29 @@
 {
-  "version": "0.0.2",
+  "version": "0.0.5",
   "organization": "personal",
   "date": "July 2026",
-  "abstract": "Java and Spring Boot development best practices covering Spring Boot development, Java code review, testing (JUnit 5/Mockito/Testcontainers), and JVM troubleshooting. Optimized for AI agents. Default code style: constructor injection + Lombok essentials, Spring Boot 3.x / Java 17+.",
+  "abstract": "Framework-neutral Java/JVM development agent skill covering plain Java, libraries, CLI tools, API design, exception handling, Java version modernization, Maven and Gradle build hygiene, optional Spring Boot development and migrations, Java code/security review, testing with JUnit/Mockito/Testcontainers, and JVM troubleshooting. Defaults are project-aware: preserve existing stack, build tool, Java version, logging, persistence, and Lombok usage unless the user asks to change them.",
   "codeStyle": {
-    "di": "constructor injection via @RequiredArgsConstructor",
-    "logging": "@Slf4j + SLF4J",
-    "dataClasses": "prefer record for DTO, @Data for @Entity",
-    "springBootDefault": "3.x (jakarta.*)",
-    "buildTool": "Maven"
+    "projectStack": "preserve existing project conventions first",
+    "di": "constructor injection in DI frameworks; use @RequiredArgsConstructor only when Lombok is already present",
+    "logging": "use the existing logging facade; SLF4J-compatible logging preferred",
+    "dataClasses": "prefer record for compatible Java DTOs; otherwise use immutable/final classes when practical",
+    "javaBaseline": "preserve existing target; Java 17+ compatibility baseline for new/unknown modern examples",
+    "springBootDefault": "optional framework domain; 3.x (jakarta.*) only when Spring Boot is in scope and version is unknown",
+    "buildTool": "preserve existing build tool; Maven and Gradle are both supported",
+    "persistence": "preserve existing persistence choice; MyBatis-Plus only as an optional new China-style Spring Boot default when no choice exists",
+    "apiCompatibility": "preserve public API/source/binary/serialization compatibility unless a breaking change is requested",
+    "exceptions": "preserve causes, respect interrupts, map failures at system boundaries"
   },
   "references": [
-    "https://docs.spring.io/spring-boot/docs/current/reference/html/",
+    "https://dev.java/",
+    "https://docs.oracle.com/en/java/javase/",
+    "https://maven.apache.org/guides/",
+    "https://docs.gradle.org/current/userguide/userguide.html",
+    "https://docs.spring.io/spring-boot/",
     "https://docs.spring.io/spring-framework/reference/",
     "https://junit.org/junit5/docs/current/user-guide/",
     "https://www.testcontainers.org/",
-    "https://docs.oracle.com/en/java/javase/21/docs/specs/",
-    "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.0-Migration-Guide"
+    "https://docs.oracle.com/en/java/"
   ]
 }

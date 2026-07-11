@@ -4,7 +4,6 @@ impact: HIGH
 impactDescription: OOM crashes the JVM; correct dump + analysis identifies the leak in minutes vs hours
 tags: oom, heap-dump, mat, memory-leak, jmap
 description: Capture heap dump on OOM; analyze with MAT dominator tree; classify by OOM message (heap/metaspace/direct-buffer)
-alwaysApply: true
 ---
 
 ## OutOfMemoryError Analysis
