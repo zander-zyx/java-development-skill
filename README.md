@@ -12,7 +12,15 @@
 <!-- TESTING_RULES: 6 -->
 <!-- JVM_RULES: 5 -->
 
-A framework-neutral Java/JVM skill for AI coding agents. It is designed for everyday Java development across plain Java, libraries, CLI tools, Maven/Gradle builds, Spring Boot services, tests, code review, security review, migrations, and JVM production incidents.
+A framework-neutral Java/JVM skill for AI coding agents.
+
+It helps an agent work safely on real Java projects: plain Java, libraries, CLI tools, Maven/Gradle builds, Spring Boot services, tests, code review, security review, migrations, and JVM production incidents. The core principle is simple: **understand the existing project first, then make the smallest verifiable change**.
+
+## Why this skill exists
+
+Java projects are not all Spring Boot projects, and Spring Boot projects are not all the same. A useful Java agent must avoid hidden assumptions about build tools, Java versions, persistence frameworks, test stacks, logging, deployment constraints, and business behavior.
+
+This skill turns those constraints into a router plus focused rule files so the agent can load only the guidance needed for the current task.
 
 ## What this skill optimizes for
 
@@ -21,6 +29,18 @@ A framework-neutral Java/JVM skill for AI coding agents. It is designed for ever
 3. **Small, verifiable changes** — prefer the smallest safe edit and report the exact compile/test/diagnostic command used.
 4. **On-demand context** — `SKILL.md` routes to the smallest useful rule set instead of loading all rules.
 5. **Production-safe defaults** — no hidden stack conversion, broad refactor, dependency upgrade, Java-version bump, or business-rule invention.
+
+## Best-fit tasks
+
+Use this skill for:
+
+- Java feature work and bug fixes in existing repositories.
+- Maven or Gradle dependency, plugin, BOM, wrapper, and toolchain edits.
+- API design, DTO/contracts, exception handling, compatibility, and modernization.
+- Spring Boot development and Spring Boot 2→3 / 3→4 migration planning.
+- JUnit 5, Mockito, AssertJ, Spring test slices, and Testcontainers strategy.
+- Java code review for concurrency, null safety, resource leaks, streams, equality, and security.
+- JVM incident triage: OOM, heap dumps, high CPU, thread dumps, deadlocks, GC tuning, and GC logs.
 
 ## Agent contract
 
@@ -31,31 +51,33 @@ When this skill is active, the agent should:
 - Use Lombok only when the project already uses Lombok.
 - Treat Spring Boot as an optional domain, not the default for all Java work.
 - Preserve existing persistence choices: MyBatis, MyBatis-Plus, JPA/Hibernate, JDBC, jOOQ, or other project-specific stacks.
+- Modify only the affected module in multi-module or mixed-framework repositories unless a cross-cutting change is requested.
+- Avoid editing generated output unless explicitly requested; change the template, schema, annotation-processor input, or generator configuration instead.
 - For non-trivial work, report change reason, impact scope, verified items, unverified items, and how to verify.
 
 ## What this skill is not
 
-- Not a Spring Boot-specific template or a starter-project generator.
+- Not a starter-project generator.
+- Not limited to one framework, build tool, persistence layer, or Java version.
 - Not a style enforcer that rewrites build tools, persistence layers, Java versions, or frameworks.
 - Not a replacement for repository-specific `AGENTS.md`, architecture docs, CI rules, or business requirements.
 
-## Repository layout
+## How routing works
+
+`SKILL.md` is intentionally small. It classifies the task, then points the agent to the narrowest useful rule file:
 
 ```text
-java-development/
-├── SKILL.md                  # Router and runtime instructions
-├── core/                     # General Java workflow, API, exceptions, modernization
-├── build-tools/              # Maven and Gradle build hygiene
-├── spring-boot/              # Optional Spring Boot-specific rules
-├── code-review/              # Java review and security checks
-├── testing/                  # Unit, slice, integration, Mockito, Testcontainers
-├── jvm/                      # OOM, CPU, thread dump, GC tuning/log analysis
-├── assets/                   # Optional templates
-├── examples/                 # Prompt examples
-├── scripts/validate-skill.py # Repository-local validator
-├── agents/openai.yaml        # OpenAI/Codex UI metadata
-└── metadata.json             # Skill metadata
+unknown/general Java task  -> core/java-general-development.md
+public API change          -> core/java-api-design.md
+Maven edit                 -> build-tools/build-maven-dependencies.md
+Gradle edit                -> build-tools/build-gradle-dependencies.md
+Spring Boot-specific task  -> spring-boot/<matching-rule>.md
+test work                  -> testing/test-layering.md + matching test rule
+review/security scan       -> code-review/<matching-risk>.md
+JVM incident               -> jvm/<matching-symptom>.md
 ```
+
+This keeps the agent precise: broad enough for all Java developers, but not noisy for a single task.
 
 ## Code style baseline
 
@@ -74,6 +96,24 @@ These are defaults, not forced migrations:
 | Security | Avoid injected queries, leaked secrets, unsafe deserialization, weak crypto, SSRF, and client-only authorization |
 | Spring Boot | Optional framework domain; unknown modern examples use Spring Boot 3.x / `jakarta.*` / Java 17+ |
 | Persistence | Preserve existing choice; MyBatis-Plus is only an optional new China-style Spring Boot default when no choice exists |
+
+## Repository layout
+
+```text
+java-development/
+├── SKILL.md                  # Router and runtime instructions
+├── core/                     # General Java workflow, API, exceptions, modernization
+├── build-tools/              # Maven and Gradle build hygiene
+├── spring-boot/              # Optional Spring Boot-specific rules
+├── code-review/              # Java review and security checks
+├── testing/                  # Unit, slice, integration, Mockito, Testcontainers
+├── jvm/                      # OOM, CPU, thread dump, GC tuning/log analysis
+├── assets/                   # Optional templates
+├── examples/                 # Prompt examples
+├── scripts/validate-skill.py # Repository-local validator
+├── agents/openai.yaml        # OpenAI/Codex UI metadata
+└── metadata.json             # Skill metadata
+```
 
 ## Rule index
 
@@ -141,6 +181,22 @@ These are defaults, not forced migrations:
 | `jvm/jvm-gc-tuning.md` | HIGH | GC pauses, heap sizing, collector selection |
 | `jvm/jvm-gc-logs.md` | MEDIUM | GC log interpretation and evidence collection |
 
+## Usage examples
+
+```text
+Use the java-development skill to review this Java module for null-safety and resource leaks.
+```
+
+```text
+Use the java-development skill to upgrade this service from Spring Boot 2.x to 3.x with the smallest safe migration plan.
+```
+
+```text
+Use the java-development skill to diagnose a JVM high CPU incident from thread dumps and profiler evidence.
+```
+
+See more examples in `examples/usage-examples.md` and `examples/usage-examples.zh.md`.
+
 ## Validation
 
 Run before publishing changes:
@@ -156,12 +212,20 @@ if (!(Test-Path $venv)) { python -m venv $venv }
 git diff --check
 ```
 
+The repository-local validator checks rule counts, router references, README index consistency, impact values, stale wording, file hygiene, machine-readable metadata, and official skill frontmatter compatibility.
+
 ## Assets
 
 - `assets/pom-spring-boot-3.xml`: Spring Boot 3.x Maven baseline.
 - `assets/pom-spring-boot-2.xml`: Spring Boot 2.x Maven baseline.
 - `assets/controller-service-test.java`: Controller + service + test skeleton.
 - `assets/application.yml.template`: multi-environment config template.
+
+## Compatibility notes
+
+- Java 8 through Java 21+ projects are supported as existing targets; the agent should not modernize syntax without evidence or user request.
+- Spring Boot 3.x / `jakarta.*` / Java 17+ is only the default for unknown modern Spring Boot examples, not for all Java work.
+- Maven and Gradle are first-class supported build tools; other build systems should be preserved when already present.
 
 ## License
 
