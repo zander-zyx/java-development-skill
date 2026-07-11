@@ -4,6 +4,8 @@
 [![Rules](https://img.shields.io/badge/rules-34-success.svg)](#规则索引)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+**语言:** [English](README.md) | 中文
+
 <!-- TOTAL_RULES: 34 -->
 <!-- CORE_RULES: 4 -->
 <!-- BUILD_RULES: 2 -->

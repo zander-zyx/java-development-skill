@@ -180,6 +180,13 @@ def check_docs(counts: dict[str, int], errors: list[str]) -> None:
         for pattern, reason in FORBIDDEN_DOC_PATTERNS.items():
             if re.search(pattern, text, flags=re.IGNORECASE):
                 fail(errors, f"{filename}: forbidden stale wording ({reason}): /{pattern}/")
+        language_links = {
+            "README.md": "[中文](README_zh.md)",
+            "README_zh.md": "[English](README.md)",
+        }
+        required_language_link = language_links.get(filename)
+        if required_language_link and required_language_link not in text:
+            fail(errors, f"{filename}: missing language switch link {required_language_link!r}")
         for key, value in expected.items():
             marker = f"<!-- {key}: {value} -->"
             if marker not in text:
