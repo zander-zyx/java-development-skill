@@ -2,13 +2,13 @@
 title: Java Version Modernization
 impact: HIGH
 impactDescription: Java upgrades can break compilation, runtime flags, reflection, dependencies, containers, and CI even when source changes look small
-tags: java, migration, modernization, java-8, java-11, java-17, java-21, toolchain
+tags: java, migration, modernization, java-8, java-11, java-17, java-21, java-25, toolchain
 description: Modernize Java versions safely by separating language changes from runtime/build/dependency upgrades and preserving compatibility requirements
 ---
 
 ## Java Version Modernization
 
-Use this when upgrading Java 8/11/17/21, introducing newer language features, changing compiler release, or modernizing old Java idioms.
+Use this when upgrading Java 8/11/17/21/25, introducing newer language features, changing compiler release, or modernizing old Java idioms.
 
 ### Why it matters
 
@@ -28,7 +28,7 @@ Java modernization is not just syntax cleanup. Runtime images, bytecode target, 
 - Do not use `var`, `record`, text blocks, switch expressions, or pattern matching unless the target Java version supports them.
 - For Java 8 to 11+, check removed Java EE/JAXB modules and old JVM flags.
 - For Java 8/11 to 17+, check strong encapsulation and reflective access warnings/errors.
-- For Java 17 to 21+, check virtual thread usage carefully; do not mix with blocking code assumptions blindly.
+- For Java 17 to 21+ (including Java 25+), check virtual thread usage carefully; do not mix with blocking code assumptions blindly.
 - Update annotation processors such as Lombok and MapStruct before blaming the compiler.
 - Preserve public API bytecode compatibility for libraries unless a major-version break is accepted.
 

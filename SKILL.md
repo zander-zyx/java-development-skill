@@ -46,7 +46,7 @@ Start with the smallest useful set:
 | Unknown Java project, framework-neutral edit, library/CLI code | `core/java-general-development.md` | add matching `build-tools/...`, `testing/...`, or `code-review/...` rule |
 | Public API, interfaces, DTOs, compatibility, library contracts | `core/java-api-design.md` | `code-review/cr-null-safety.md` |
 | Exceptions, retries, interrupts, failure boundaries | `core/java-exception-handling.md` | `code-review/cr-resource-leak.md` |
-| Java 8/11/17/21 upgrade, newer syntax, toolchain | `core/java-version-modernization.md` | `build-tools/build-maven-dependencies.md` or `build-tools/build-gradle-dependencies.md` |
+| Java 8/11/17/21/25 upgrade, newer syntax, toolchain | `core/java-version-modernization.md` | `build-tools/build-maven-dependencies.md` or `build-tools/build-gradle-dependencies.md` |
 | Maven `pom.xml`, dependencies, BOM, plugins, Java release | `build-tools/build-maven-dependencies.md` | relevant `spring-boot/...`, `testing/...`, or migration rule |
 | Gradle `build.gradle(.kts)`, wrapper, version catalog, toolchain | `build-tools/build-gradle-dependencies.md` | relevant `spring-boot/...`, `testing/...`, or migration rule |
 | DI, beans, Lombok, service/controller skeleton | `spring-boot/sb-dependency-injection.md` | `spring-boot/sb-project-structure.md` |

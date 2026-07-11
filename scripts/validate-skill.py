@@ -271,11 +271,30 @@ def check_machine_files(errors: list[str]) -> None:
 
 def check_assets(errors: list[str]) -> None:
     assets = ROOT / "assets"
+    parsed_xml: dict[str, ET.ElementTree] = {}
     for path in sorted(assets.glob("*.xml")):
         try:
-            ET.parse(path)
+            parsed_xml[path.name] = ET.parse(path)
         except ET.ParseError as exc:
             fail(errors, f"{path.relative_to(ROOT)}: invalid XML: {exc}")
+
+    mybatis_versions: dict[str, str] = {}
+    ns = {"m": "http://maven.apache.org/POM/4.0.0"}
+    for filename in ["pom-spring-boot-2.xml", "pom-spring-boot-3.xml"]:
+        tree = parsed_xml.get(filename)
+        if tree is None:
+            continue
+        version = tree.findtext(".//m:properties/m:mybatis-plus.version", namespaces=ns)
+        if version:
+            mybatis_versions[filename] = version.strip()
+
+    if len(set(mybatis_versions.values())) > 1:
+        fail(errors, f"assets: MyBatis-Plus versions drift across POM templates: {mybatis_versions}")
+
+    rule_text = read(ROOT / "spring-boot" / "sb-mybatis-plus.md")
+    for filename, version in mybatis_versions.items():
+        if f"<version>{version}</version>" not in rule_text:
+            fail(errors, f"spring-boot/sb-mybatis-plus.md: missing MyBatis-Plus example version from {filename}: {version}")
 
     yaml_path = assets / "application.yml.template"
     yaml_text = read(yaml_path)

@@ -16,7 +16,7 @@ Most apps need no tuning — Java's defaults are good. Reach for GC tuning only 
 - **Collector trade-offs are workload-specific** — throughput, pause time, CPU, memory overhead, allocation rate, and heap size interact.
 - **Micro-tuning flags are a trap** — most "tuning" blog posts don't apply to your workload. The wins are in GC choice + heap sizing.
 
-### The GC options (Java 17/21)
+### The GC options (Java 17/21/25+)
 
 | GC | Use when | Pause | Throughput | Memory overhead |
 |----|----------|-------|-----------|-----------------|

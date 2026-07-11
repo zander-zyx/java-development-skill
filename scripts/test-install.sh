@@ -19,4 +19,20 @@ test ! -e "$TEST_HOME/.config/opencode/skills/java-development"
 HOME="$TEST_HOME" bash "$REPO_ROOT/install.sh" --uninstall
 test ! -e "$TEST_HOME/.codex/skills/java-development"
 
+HOME="$TEST_HOME" bash "$REPO_ROOT/install.sh" --all
+test -e "$TEST_HOME/.claude/skills/java-development"
+test -e "$TEST_HOME/.codex/skills/java-development"
+test -e "$TEST_HOME/.config/opencode/skills/java-development"
+test -e "$TEST_HOME/.opencode/skills/java-development"
+test -e "$TEST_HOME/.zcode/skills/java-development"
+test -e "$TEST_HOME/.agents/skills/java-development"
+
+HOME="$TEST_HOME" bash "$REPO_ROOT/install.sh" --uninstall
+test ! -e "$TEST_HOME/.claude/skills/java-development"
+test ! -e "$TEST_HOME/.codex/skills/java-development"
+test ! -e "$TEST_HOME/.config/opencode/skills/java-development"
+test ! -e "$TEST_HOME/.opencode/skills/java-development"
+test ! -e "$TEST_HOME/.zcode/skills/java-development"
+test ! -e "$TEST_HOME/.agents/skills/java-development"
+
 echo "Installer tests passed."

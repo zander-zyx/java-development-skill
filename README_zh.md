@@ -1,6 +1,6 @@
 # Java Development Agent Skill
 
-[![Java](https://img.shields.io/badge/Java-8--21%2B-blue.svg)](https://dev.java/)
+[![Java](https://img.shields.io/badge/Java-8%2B-blue.svg)](https://dev.java/)
 [![Rules](https://img.shields.io/badge/rules-34-success.svg)](#规则索引)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -86,7 +86,7 @@ java-development/
 | `core/java-general-development.md` | HIGH | 识别任意 Java 项目并选择框架中立默认策略 |
 | `core/java-api-design.md` | HIGH | Public API 设计、兼容性、DTO、泛型、类库契约 |
 | `core/java-exception-handling.md` | HIGH | 异常、重试、中断、日志边界、失败映射 |
-| `core/java-version-modernization.md` | HIGH | Java 8/11/17/21 升级、语法现代化、toolchain、运行时检查 |
+| `core/java-version-modernization.md` | HIGH | Java 8/11/17/21/25 升级、语法现代化、toolchain、运行时检查 |
 
 ### Build tools（2）
 

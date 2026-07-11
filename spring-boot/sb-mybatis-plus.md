@@ -23,13 +23,13 @@ Apply this rule only when the project already uses MyBatis-Plus or the user has 
 <dependency>
     <groupId>com.baomidou</groupId>
     <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-    <version>3.5.16</version>
+    <version>3.5.17</version>
 </dependency>
 <!-- PaginationInnerInterceptor is optional since 3.5.9. Add it only when used. -->
 <dependency>
     <groupId>com.baomidou</groupId>
     <artifactId>mybatis-plus-jsqlparser</artifactId>
-    <version>3.5.16</version>
+    <version>3.5.17</version>
 </dependency>
 ```
 

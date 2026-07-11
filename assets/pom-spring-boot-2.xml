@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   Opt-in legacy Spring Boot 2.x + MyBatis-Plus Maven example (javax.*, Java 8/17).
-  Use only for maintaining legacy 2.7.x apps; new projects should use SB3.
+  Use only for maintaining legacy 2.7.x apps; new projects should verify the current supported Spring Boot line.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -22,7 +22,7 @@
 
     <properties>
         <java.version>8</java.version>       <!-- bump to 17 before attempting SB3 migration -->
-        <mybatis-plus.version>3.5.16</mybatis-plus.version>
+        <mybatis-plus.version>3.5.17</mybatis-plus.version>
     </properties>
 
     <dependencies>

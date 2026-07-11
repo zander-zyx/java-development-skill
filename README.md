@@ -1,6 +1,6 @@
 # Java Development Agent Skill
 
-[![Java](https://img.shields.io/badge/Java-8--21%2B-blue.svg)](https://dev.java/)
+[![Java](https://img.shields.io/badge/Java-8%2B-blue.svg)](https://dev.java/)
 [![Rules](https://img.shields.io/badge/rules-34-success.svg)](#rule-index)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -126,7 +126,7 @@ java-development/
 | `core/java-general-development.md` | HIGH | Classify any Java project and choose framework-neutral defaults |
 | `core/java-api-design.md` | HIGH | Public API design, compatibility, DTOs, generics, library contracts |
 | `core/java-exception-handling.md` | HIGH | Exceptions, retries, interrupts, logging boundaries, failure mapping |
-| `core/java-version-modernization.md` | HIGH | Java 8/11/17/21 upgrades, syntax modernization, toolchains, runtime checks |
+| `core/java-version-modernization.md` | HIGH | Java 8/11/17/21/25 upgrades, syntax modernization, toolchains, runtime checks |
 
 ### Build tools (2)
 
@@ -225,7 +225,7 @@ The repository-local validator checks rule counts, router references, README ind
 
 ## Compatibility notes
 
-- Java 8 through Java 21+ projects are supported as existing targets; the agent should not modernize syntax without evidence or user request.
+- Java 8+ projects are supported as existing targets; the agent should not modernize syntax without evidence or user request.
 - Spring Boot examples must preserve the existing line; when no line exists, verify the current supported Spring Boot line and Java/Jakarta requirements before writing code.
 - Maven and Gradle are first-class supported build tools; other build systems should be preserved when already present.
 

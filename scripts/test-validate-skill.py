@@ -2,6 +2,7 @@
 """Regression tests for scripts/validate-skill.py."""
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -27,6 +28,8 @@ class ValidatorTests(unittest.TestCase):
         self.temp_dir.cleanup()
 
     def run_validator(self) -> subprocess.CompletedProcess[str]:
+        env = os.environ.copy()
+        env["PYTHONIOENCODING"] = "utf-8"
         return subprocess.run(
             [sys.executable, str(self.skill / "scripts" / "validate-skill.py")],
             cwd=self.skill,
@@ -34,6 +37,7 @@ class ValidatorTests(unittest.TestCase):
             capture_output=True,
             text=True,
             encoding="utf-8",
+            env=env,
         )
 
     def assert_rejected(self, expected_message: str) -> None:
@@ -91,6 +95,26 @@ class ValidatorTests(unittest.TestCase):
         )
         path.write_text(text, encoding="utf-8")
         self.assert_rejected("metadata.json: duplicate reference")
+
+    def test_readme_language_switch_is_required(self) -> None:
+        path = self.skill / "README.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace("[中文](README_zh.md)", "中文", 1),
+            encoding="utf-8",
+        )
+        self.assert_rejected("README.md: missing language switch link")
+
+    def test_mybatis_plus_versions_must_stay_in_sync(self) -> None:
+        path = self.skill / "assets" / "pom-spring-boot-3.xml"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "<mybatis-plus.version>3.5.17</mybatis-plus.version>",
+                "<mybatis-plus.version>3.5.99</mybatis-plus.version>",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        self.assert_rejected("MyBatis-Plus versions drift across POM templates")
 
 
 if __name__ == "__main__":
