@@ -3,12 +3,12 @@ title: Global Exception Handling
 impact: HIGH
 impactDescription: A single @RestControllerAdvice gives consistent error responses and centralizes error logic
 tags: exceptions, restcontrolleradvice, error-responses, validation, problem-details
-description: Handle all exceptions in one @RestControllerAdvice; return RFC 7807 ProblemDetail; never leak stack traces
+description: Map domain and framework failures at the HTTP boundary, use RFC 9457 ProblemDetail when supported, and keep internal diagnostics out of client responses
 ---
 
 ## Global Exception Handling
 
-Centralize HTTP exception handling in a single `@RestControllerAdvice`. Return structured error bodies. Never let raw stack traces reach the client.
+Centralize HTTP error mapping in one or a small ordered set of `@RestControllerAdvice` components. Return a stable structured contract and never send raw stack traces to clients.
 
 ### Why it matters
 
@@ -80,9 +80,9 @@ public class GlobalExceptionHandler {
 }
 ```
 
-### RFC 7807 ProblemDetail (Spring 6+)
+### RFC 9457 ProblemDetail (Spring 6+)
 
-Spring Boot 3.x ships `org.springframework.http.ProblemDetail` implementing RFC 7807. Prefer it over custom error JSON — clients and tools increasingly understand the standard shape:
+Spring Framework 6+ ships `org.springframework.http.ProblemDetail`; current Spring documentation aligns it with RFC 9457 (which obsoletes RFC 7807). Prefer the standard shape when it matches the project's API contract, but do not silently change an established public error schema.
 
 ```json
 {

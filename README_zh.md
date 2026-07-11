@@ -74,8 +74,8 @@ java-development/
 | DTO/值对象 | 只有 Java 版本和框架都支持时才优先使用 `record` |
 | 异常 | 保留 cause，尊重 interrupt，在系统边界映射失败 |
 | 安全 | 避免注入、密钥泄漏、不安全反序列化、弱加密、SSRF、只靠客户端鉴权 |
-| Spring Boot | 可选框架域；未知的现代示例使用 Spring Boot 3.x / `jakarta.*` / Java 17+ |
-| 持久层 | 保留已有选择；MyBatis-Plus 只作为“新建中国式 Spring Boot 服务且未选型”时的可选默认 |
+| Spring Boot | 可选框架域；优先保留现有 Boot 版本线；新建/未知示例先核对当前受支持版本线和运行要求 |
+| 持久层 | 保留已有选择；是否使用 MyBatis-Plus/JPA/JDBC/jOOQ 等取决于项目上下文、团队偏好和查询/数据约束 |
 
 ## 规则索引
 
@@ -160,10 +160,10 @@ git diff --check
 
 ## Assets
 
-- `assets/pom-spring-boot-3.xml`：Spring Boot 3.x Maven 基线。
-- `assets/pom-spring-boot-2.xml`：Spring Boot 2.x Maven 基线。
-- `assets/controller-service-test.java`：Controller + service + test 骨架。
-- `assets/application.yml.template`：多环境配置模板。
+- `assets/pom-spring-boot-3.xml`：可选 Spring Boot 3.x + MyBatis-Plus Maven 示例。
+- `assets/pom-spring-boot-2.xml`：可选旧版 Spring Boot 2.7 + MyBatis-Plus 维护示例。
+- `assets/controller-service-test.java`：可选 Spring Boot 3.x/MyBatis-Plus Controller + service + test 骨架。
+- `assets/application.yml.template`：可选 Spring Boot + MyBatis-Plus 多环境配置模板。
 
 ## License
 

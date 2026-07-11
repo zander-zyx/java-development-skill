@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,14 +14,7 @@ REQUIRED_SKILL_KEYS = {"name", "description"}
 REQUIRED_RULE_KEYS = {"title", "impact", "impactDescription", "tags", "description"}
 VALID_IMPACTS = {"HIGH", "MEDIUM", "LOW"}
 DOC_FILES = ["README.md", "README_zh.md"]
-TEXT_FILES = [
-    "SKILL.md",
-    "README.md",
-    "README_zh.md",
-    "CONTRIBUTING.md",
-    "metadata.json",
-    "agents/openai.yaml",
-]
+TEXT_SUFFIXES = {".java", ".json", ".md", ".py", ".sh", ".template", ".xml", ".yaml", ".yml"}
 FORBIDDEN_DOC_PATTERNS = {
     r"\brules-30\b": "stale 30-rule badge",
     r"\brules-27\b": "stale 27-rule badge",
@@ -79,6 +73,9 @@ def parse_frontmatter(path: Path, errors: list[str]) -> dict[str, str]:
         if not key:
             fail(errors, f"{path.relative_to(ROOT)}:{idx}: empty frontmatter key")
             continue
+        if key in data:
+            fail(errors, f"{path.relative_to(ROOT)}:{idx}: duplicate frontmatter key '{key}'")
+            continue
         data[key] = value
     return data
 
@@ -93,6 +90,25 @@ def check_markdown_fences(path: Path, errors: list[str]) -> None:
         fail(errors, f"{path.relative_to(ROOT)}: unclosed Markdown code fence")
 
 
+def check_local_markdown_links(path: Path, errors: list[str]) -> None:
+    text = read(path)
+    for target in re.findall(r"\[[^\]]*\]\(([^)]+)\)", text):
+        target = target.strip()
+        if not target or target.startswith(("#", "http://", "https://", "mailto:")):
+            continue
+        relative_target = target.split("#", 1)[0]
+        if not relative_target:
+            continue
+        destination = (path.parent / relative_target).resolve()
+        try:
+            destination.relative_to(ROOT)
+        except ValueError:
+            fail(errors, f"{path.relative_to(ROOT)}: local link escapes skill root: {target}")
+            continue
+        if not destination.exists():
+            fail(errors, f"{path.relative_to(ROOT)}: broken local link: {target}")
+
+
 def check_skill(errors: list[str]) -> None:
     path = ROOT / "SKILL.md"
     fm = parse_frontmatter(path, errors)
@@ -102,6 +118,14 @@ def check_skill(errors: list[str]) -> None:
     for key in REQUIRED_SKILL_KEYS & set(fm):
         if not fm[key]:
             fail(errors, f"SKILL.md: empty frontmatter key '{key}'")
+    unexpected = set(fm) - REQUIRED_SKILL_KEYS
+    for key in sorted(unexpected):
+        fail(errors, f"SKILL.md: unsupported frontmatter key '{key}'")
+    name = fm.get("name", "")
+    if name and name != ROOT.name:
+        fail(errors, f"SKILL.md: name must match skill directory '{ROOT.name}', got '{name}'")
+    if name and not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name):
+        fail(errors, "SKILL.md: name must contain lowercase letters, numbers, and single hyphens only")
 
     text = read(path)
     frontmatter = text.split("---", 2)[1] if text.startswith("---") and len(text.split("---", 2)) >= 3 else ""
@@ -134,6 +158,7 @@ def rule_files() -> list[Path]:
 
 def check_rules(errors: list[str]) -> dict[str, int]:
     counts: dict[str, int] = {}
+    titles: dict[str, Path] = {}
     for dirname in RULE_DIRS:
         files = sorted((ROOT / dirname).glob("*.md")) if (ROOT / dirname).exists() else []
         counts[dirname] = len(files)
@@ -150,6 +175,11 @@ def check_rules(errors: list[str]) -> dict[str, int]:
                 fail(errors, f"{rel}: impact must be one of {sorted(VALID_IMPACTS)}, got {fm['impact']!r}")
             if "alwaysApply" in fm:
                 fail(errors, f"{rel}: avoid alwaysApply; route from SKILL.md instead")
+            title = fm.get("title", "")
+            if title in titles:
+                fail(errors, f"{rel}: duplicate rule title {title!r}; already used by {titles[title].relative_to(ROOT)}")
+            elif title:
+                titles[title] = path
             check_markdown_fences(path, errors)
     return counts
 
@@ -222,6 +252,11 @@ def check_machine_files(errors: list[str]) -> None:
     spring_default = str(code_style.get("springBootDefault", "")) if isinstance(code_style, dict) else ""
     if "optional" not in spring_default.lower():
         fail(errors, "metadata.json: codeStyle.springBootDefault must keep Spring Boot optional")
+    references = metadata.get("references", []) if isinstance(metadata, dict) else []
+    if not isinstance(references, list) or not all(isinstance(item, str) for item in references):
+        fail(errors, "metadata.json: references must be a list of strings")
+    elif len(references) != len(set(references)):
+        fail(errors, "metadata.json: duplicate reference")
 
     agent_path = ROOT / "agents" / "openai.yaml"
     text = read(agent_path)
@@ -234,20 +269,51 @@ def check_machine_files(errors: list[str]) -> None:
     check_markdown_fences(agent_path, errors)
 
 
+def check_assets(errors: list[str]) -> None:
+    assets = ROOT / "assets"
+    for path in sorted(assets.glob("*.xml")):
+        try:
+            ET.parse(path)
+        except ET.ParseError as exc:
+            fail(errors, f"{path.relative_to(ROOT)}: invalid XML: {exc}")
+
+    yaml_path = assets / "application.yml.template"
+    yaml_text = read(yaml_path)
+    if re.search(r"(?m)^\s+mybatis-plus:\s*$", yaml_text):
+        fail(errors, f"{yaml_path.relative_to(ROOT)}: mybatis-plus must be a top-level YAML key")
+    if not re.search(r"(?m)^mybatis-plus:\s*$", yaml_text):
+        fail(errors, f"{yaml_path.relative_to(ROOT)}: missing top-level mybatis-plus key")
+
+    java_path = assets / "controller-service-test.java"
+    java_text = read(java_path)
+    if re.search(r"(?s)@Data\s+@TableName", java_text):
+        fail(errors, f"{java_path.relative_to(ROOT)}: avoid Lombok @Data on persistence entities")
+
+
+def text_files() -> list[Path]:
+    return sorted(
+        path
+        for path in ROOT.rglob("*")
+        if path.is_file()
+        and ".git" not in path.parts
+        and "__pycache__" not in path.parts
+        and path.suffix.lower() in TEXT_SUFFIXES
+    )
+
+
 def main() -> int:
     errors: list[str] = []
-    for filename in TEXT_FILES:
-        check_text_hygiene(ROOT / filename, errors)
-    for path in rule_files():
+    for path in text_files():
         check_text_hygiene(path, errors)
-    for path in [ROOT / "SKILL.md", ROOT / "README.md", ROOT / "README_zh.md", ROOT / "CONTRIBUTING.md"]:
-        if path.exists():
+        if path.suffix.lower() == ".md":
             check_markdown_fences(path, errors)
+            check_local_markdown_links(path, errors)
 
     check_skill(errors)
     counts = check_rules(errors)
     check_docs(counts, errors)
     check_machine_files(errors)
+    check_assets(errors)
 
     if errors:
         print("Skill validation failed:\n", file=sys.stderr)

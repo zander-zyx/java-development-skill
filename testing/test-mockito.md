@@ -3,7 +3,7 @@ title: Mockito Patterns
 impact: HIGH
 impactDescription: Wrong stubbing (over-mock, leaky verify) produces tests that pass but verify nothing
 tags: mockito, mocking, stubbing, verify, spy, mockstatic
-description: Stub what you need with lenient defaults; verify only behavior that matters; prefer stubbing over spying; mock static sparingly
+description: Use strict stubbing, verify only observable obligations, construct units explicitly, and reserve spies/static/context mocks for hard boundaries
 ---
 
 ## Mockito Patterns
@@ -162,5 +162,5 @@ Mockito (with mockito-inline) can mock final classes and constructors. Enable by
 ### Context
 
 - **Mockito version**: Mockito 5+ is inline-by-default (mocks final); 4.x needs `mockito-inline`. Spring Boot's BOM aligns these — use the managed version.
-- **`@MockBean`** (Spring): replaces a bean in the context with a mock. Convenient but expensive — each `@MockBean` triggers a context cache miss. Prefer plain `@Mock` + `@InjectMocks` for unit tests; reserve `@MockBean` for slice tests where you need the Spring context.
-- **Cross-ref**: `@MockBean` in slice tests in `testing/test-spring-boot-test.md`; AssertJ assertion depth in `testing/test-coverage-assertj.md`.
+- **Spring bean overrides**: use `@MockitoBean` on Spring Framework 6.2 / Spring Boot 3.4+ and Boot 4; preserve `@MockBean` on older Boot lines. Distinct override configurations can create additional cached contexts. Prefer plain `@Mock` plus explicit constructor creation for unit tests.
+- **Cross-ref**: version-aware bean overrides in `testing/test-spring-boot-test.md`; AssertJ assertion depth in `testing/test-coverage-assertj.md`.

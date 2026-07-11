@@ -8,7 +8,7 @@ description: Find the hot OS thread with top -Hp, map to Java thread via nid in 
 
 ## High CPU Troubleshooting
 
-When CPU pegs at 100% (or the container is throttled), the cause is one hot thread — usually an infinite loop, a regex catastrophic backtracking, or a hot algorithm. Find that thread, then find the hot method.
+When CPU is saturated or the container is throttled, first determine whether load is spread across workers, concentrated in one thread, consumed by GC/JIT, or caused by the host/container. Then profile the responsible code path.
 
 ### Why it matters
 
@@ -63,8 +63,9 @@ If the same stack appears in both dumps, that thread is stuck in `Slugify.slugif
 `async-profiler` samples CPU at low overhead and produces a flame graph:
 
 ```bash
-# 30-second CPU sample, output flame graph HTML
-./profiler.sh -d 30 -f cpu.html <pid>
+# Current async-profiler distribution
+./asprof -d 30 -f cpu.html <pid>
+# Older distributions used ./profiler.sh with equivalent options
 ```
 
 Open `cpu.html` in a browser. The widest blocks at the top are where CPU is spent:
@@ -77,7 +78,7 @@ Open `cpu.html` in a browser. The widest blocks at the top are where CPU is spen
                 |-- java.util.regex.Pattern$Curly.match    ← the regex engine
 ```
 
-This points straight at the hot method. async-profiler is non-intrusive (no JVMTI agent overhead like JFR-on-JDK-Mission-Control sometimes has, safe for prod).
+This points at sampled hot methods. async-profiler and JFR are designed for low-overhead profiling, but production use still requires an approved duration, output path, access control, and overhead check for the actual runtime.
 
 Alternatives:
 - **JDK Flight Recorder (JFR)** — built into the JDK, low overhead, captures CPU + allocation + IO.
@@ -100,7 +101,7 @@ while (!queue.isEmpty()) { }   // busy-wait without sleep → pegs a core
 // ❌ on input "aaaaaaaaaaaaaaaaaaaaaaaaaaab"
 Pattern.matches("(a+)+b", input);   // exponential
 ```
-Fix: anchor patterns, avoid nested quantifiers, set a matching timeout, or use a non-backtracking engine (RE2J).
+Fix: anchor patterns, avoid ambiguous nested quantifiers, bound input length, or use a non-backtracking engine such as RE2J when its syntax/semantics fit. `java.util.regex.Pattern` has no general built-in match timeout.
 
 **Inefficient algorithm in a hot path**:
 - O(n²) loop that was fine at 100 items, kills at 10k.
@@ -108,7 +109,7 @@ Fix: anchor patterns, avoid nested quantifiers, set a matching timeout, or use a
 - Autoboxing in a hot loop (`Integer` arithmetic) → allocation pressure.
 
 **Unintended serialization / reflection in a hot path**:
-- Jackson `ObjectMapper.readValue` called per-request — but with `readValue(slowJson, Object.class)` triggering type discovery each call.
+- Creating/configuring a new Jackson `ObjectMapper` per request, repeatedly building schemas, or converting the same payload multiple times.
 
 **GC thrashing** (looks like CPU): if the GC log shows frequent collections and CPU is high, the GC is the consumer — see `jvm/jvm-gc-tuning.md`.
 
@@ -135,5 +136,5 @@ When investigating high CPU:
 ### Context
 
 - **Container CPU limits**: K8s CPU limits throttle via CFS; the JVM sees 100% CPU but is throttled. Check `container_cpu_cfs_throttled_seconds_total` — if high, the limit is too low, not the app misbehaving.
-- **async-profiler permissions**: needs `kernel.perf_event_paranoid <= 1` on Linux for perf-events mode; otherwise runs in bytecode-instrumentation mode (still works, less accurate).
+- **async-profiler permissions**: Linux event availability depends on kernel settings, container capabilities, and profiler mode. If CPU events are unavailable, choose a supported fallback mode or JFR; do not assume automatic bytecode instrumentation.
 - **Cross-ref**: thread dump mechanics in `jvm/jvm-thread-dump.md`; GC-as-CPU-cause in `jvm/jvm-gc-tuning.md`; regex backtracking relates to the resource-review in `code-review/cr-anti-patterns.md`.

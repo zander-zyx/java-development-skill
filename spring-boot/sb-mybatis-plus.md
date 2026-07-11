@@ -1,14 +1,14 @@
 ---
-title: MyBatis-Plus Best Practices (Default Persistence Layer)
+title: MyBatis-Plus Best Practices
 impact: HIGH
-impactDescription: MyBatis-Plus is the China mainstream; correct usage avoids SQL injection, pagination bugs, and Lombok-equals traps
+impactDescription: Correct MyBatis-Plus usage avoids SQL injection, pagination failures, unsafe generated code, and entity equality traps
 tags: mybatis-plus, mybatis, persistence, basemapper, iservice, lambda-query, pagination, logical-delete
-description: Use BaseMapper/IService with LambdaQueryWrapper, configure pagination + logical delete plugins, prefer LambdaQuery to avoid column-name typos
+description: Use MyBatis-Plus when selected by the project; prefer lambda queries, explicit plugin dependencies, bounded pagination, and deliberate service abstractions
 ---
 
-## MyBatis-Plus Best Practices (Default Persistence Layer)
+## MyBatis-Plus Best Practices
 
-MyBatis-Plus (MP) is the default persistence layer in this skill — it's the dominant choice in Chinese Spring Boot projects. It augments raw MyBatis with CRUD generation, query wrappers, and plugins without the abstraction weight of JPA/Hibernate.
+Apply this rule only when the project already uses MyBatis-Plus or the user has selected it for greenfield work. MyBatis-Plus augments MyBatis with CRUD helpers, query wrappers, and optional plugins; it is one persistence choice, not the skill-wide default.
 
 ### Why it matters
 
@@ -23,10 +23,17 @@ MyBatis-Plus (MP) is the default persistence layer in this skill — it's the do
 <dependency>
     <groupId>com.baomidou</groupId>
     <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-    <version>3.5.7</version>
+    <version>3.5.16</version>
 </dependency>
-<!-- SB2.x uses: mybatis-plus-boot-starter (without the 'spring-boot3' suffix) -->
+<!-- PaginationInnerInterceptor is optional since 3.5.9. Add it only when used. -->
+<dependency>
+    <groupId>com.baomidou</groupId>
+    <artifactId>mybatis-plus-jsqlparser</artifactId>
+    <version>3.5.16</version>
+</dependency>
 ```
+
+Use `mybatis-plus-boot-starter` for Spring Boot 2, `mybatis-plus-spring-boot3-starter` for Boot 3, and `mybatis-plus-spring-boot4-starter` for Boot 4. Prefer the MyBatis-Plus BOM when several MP modules are present, and verify the current version from official documentation instead of copying this example indefinitely.
 
 **Critical**: register the pagination + optimistic-lock interceptor, else `Page` returns the full result set:
 
@@ -47,7 +54,8 @@ public class MybatisPlusConfig {
 ### Entity with annotations
 
 ```java
-@Data                                          // Lombok @Data OK on @TableName entities (no lazy proxy like JPA)
+@Getter
+@Setter                                        // no generated equals/hashCode/toString
 @TableName("t_order")
 public class Order {
     @TableId(type = IdType.ASSIGN_ID)          // snowflake ID by default; use AUTO for DB auto-increment
@@ -74,7 +82,7 @@ public class Order {
 }
 ```
 
-### Mapper + Service layers
+### Mapper and optional service abstraction
 
 ```java
 public interface OrderMapper extends BaseMapper<Order> {
@@ -88,6 +96,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     // inherits IService: saveBatch, removeById, getOne, page, lambdaQuery(), etc.
 }
 ```
+
+`BaseMapper` is sufficient for many projects. Do not add `IService`/`ServiceImpl` mechanically: newer MyBatis-Plus versions also offer `CrudRepository`, and a project-specific service interface is often clearer at the business boundary. Preserve whichever abstraction the repository already uses.
 
 ### Prefer LambdaQueryWrapper over string columns
 
@@ -170,7 +180,10 @@ Same transaction caveats as JPA: self-invocation bypasses the proxy, checked exc
 Don't hand-write entities for existing tables — use the generator to scaffold:
 
 ```java
-FastAutoGenerator.create("jdbc:mysql://localhost:3306/shop", "root", "pass")
+String url = System.getenv("GENERATOR_DB_URL");
+String user = System.getenv("GENERATOR_DB_USER");
+String password = System.getenv("GENERATOR_DB_PASSWORD");
+FastAutoGenerator.create(url, user, password)
         .globalConfig(b -> b.author("shop-team").outputDir("src/main/java").dateType(DateType.TIME_PACK))
         .packageConfig(b -> b.parent("com.acme.shop").pathInfo(Collections.singletonMap(
                 OutputFile.xml, "src/main/resources/mapper")))
@@ -178,7 +191,7 @@ FastAutoGenerator.create("jdbc:mysql://localhost:3306/shop", "root", "pass")
         .execute();
 ```
 
-Generates Entity/Mapper/Mapper.xml/Service/ServiceImpl/Controller. Delete what you don't need; the entity is the useful part.
+Generate into a disposable directory first, review the diff, then move only the required files. Never run a generator against production credentials or overwrite hand-written code without a clean Git state.
 
 ### Incorrect
 
@@ -198,7 +211,7 @@ Page<Order> p = orderService.page(new Page<>(1, 20));
 
 `@Data` on entities without considering equals:
 
-MP entities don't have the lazy-proxy problem JPA entities do, so `@Data` is generally safe. But beware `equals`/`hashCode` on `id=null` before insert (two unsaved entities "equal"). If you put entities in a `Set` before saving, override `equals` to guard null id — see `code-review/cr-equals-hashcode.md`.
+MP entities usually do not have JPA lazy proxies, but `@Data` still includes mutable fields in `equals`/`hashCode` and may expose sensitive fields in `toString`. Prefer targeted `@Getter`/`@Setter` or explicit methods; design equality only when entities are actually used as keys or set members.
 
 ### When to use raw MyBatis XML instead
 
@@ -210,6 +223,7 @@ MP and raw MyBatis coexist cleanly — put simple CRUD on `BaseMapper`, complex 
 
 ### Context
 
-- **SB3 vs SB2 starter**: the artifact id differs — `mybatis-plus-spring-boot3-starter` for SB3, `mybatis-plus-boot-starter` for SB2. Using the wrong one fails to autoconfigure. See `spring-boot/sb-migration-2-to-3.md`.
+- **Starter line**: the artifact id differs for Spring Boot 2, 3, and 4. Using the wrong one can fail autoconfiguration. See `spring-boot/sb-migration-2-to-3.md` and `spring-boot/sb-migration-3-to-4.md`.
+- **Pagination module**: since MyBatis-Plus 3.5.9, `PaginationInnerInterceptor` requires an explicit JSQLParser support module; use `mybatis-plus-jsqlparser-4.9` on JDK 8 and the current `mybatis-plus-jsqlparser` line on JDK 11+.
 - **DbType**: set `DbType` correctly in `PaginationInnerInterceptor` (MYSQL, POSTGRE_SQL, ORACLE...) — wrong dialect generates invalid `LIMIT` syntax.
-- **Cross-ref**: transaction rules shared with `spring-boot/sb-jpa-repository.md`; equals/hashCode in `code-review/cr-equals-hashcode.md`; for OSS/foreign contexts JPA is covered in `spring-boot/sb-jpa-repository.md`.
+- **Cross-ref**: transaction rules shared with `spring-boot/sb-jpa-repository.md`; equals/hashCode in `code-review/cr-equals-hashcode.md`; JPA/Hibernate alternatives in `spring-boot/sb-jpa-repository.md`.

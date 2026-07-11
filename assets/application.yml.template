@@ -19,20 +19,20 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
 
-  # MyBatis-Plus config
-  mybatis-plus:
-    mapper-locations: classpath*:/mapper/**/*.xml
-    type-aliases-package: com.acme.shop.**.entity
-    configuration:
-      map-underscore-to-camel-case: true           # t_order_no → orderNo
-      cache-enabled: false                         # disable L2 cache unless explicitly needed
-      log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
-    global-config:
-      db-config:
-        id-type: assign_id                         # snowflake default
-        logic-delete-field: deleted                # logical delete field
-        logic-delete-value: 1
-        logic-not-delete-value: 0
+# MyBatis-Plus is a top-level namespace, not spring.mybatis-plus.
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.acme.shop.**.entity
+  configuration:
+    map-underscore-to-camel-case: true             # t_order_no → orderNo
+    cache-enabled: false                           # disable L2 cache unless explicitly needed
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      id-type: assign_id                           # snowflake default
+      logic-delete-field: deleted                  # logical delete field
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 
 server:
   port: ${PORT:8080}
@@ -73,8 +73,8 @@ spring:
       on-profile: dev
   datasource:
     url: jdbc:mysql://localhost:3306/shop_dev?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
-    username: root
-    password: devpass                              # local dev only; never commit prod creds
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}                      # empty local default; never commit real credentials
 logging:
   level:
     com.acme: DEBUG

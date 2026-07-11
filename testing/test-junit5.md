@@ -8,7 +8,7 @@ description: Use JUnit 5 lifecycle (BeforeEach/All), parameterized tests for dat
 
 ## JUnit 5 Patterns
 
-JUnit 5 (Jupiter) is the standard. Use its lifecycle hooks, parameterized tests, and extension model over hand-rolled setup and loops.
+When the project uses JUnit Jupiter, use its lifecycle hooks, parameterized tests, and extension model instead of hand-rolled setup and loops. Preserve JUnit 4/TestNG in legacy modules unless migration is in scope.
 
 ### Why it matters
 
@@ -130,22 +130,25 @@ void rejectsNullUserId() {
 JUnit 5 allows multiple `@ExtendWith` — composable. Don't use abstract test base classes for setup; use an extension:
 
 ```java
-public class TestClockExtension implements BeforeEachCallback {
-    private Clock clock;
-    @Override public void beforeEach(ExtensionContext ctx) {
-        clock = Clock.fixed(Instant.parse("2026-07-03T00:00:00Z"), ZoneOffset.UTC);
-        Store store = ctx.getStore(NAMESPACE);
-        store.put(CLOCK_KEY, clock);
+public final class FixedClockExtension implements ParameterResolver {
+    @Override
+    public boolean supportsParameter(ParameterContext parameter, ExtensionContext context) {
+        return parameter.getParameter().getType() == Clock.class;
     }
-    public static Clock clock(ExtensionContext ctx) {
-        return ctx.getStore(NAMESPACE).get(CLOCK_KEY, Clock.class);
+
+    @Override
+    public Object resolveParameter(ParameterContext parameter, ExtensionContext context) {
+        return Clock.fixed(Instant.parse("2026-07-03T00:00:00Z"), ZoneOffset.UTC);
     }
 }
 
-@ExtendWith(TestClockExtension.class)
+@ExtendWith(FixedClockExtension.class)
 class OrderServiceTest {
-    @RegisterExtension static TestClockExtension clockExt = new TestClockExtension();
-    // ...
+    @Test
+    void usesFixedTime(Clock clock) {
+        var service = new OrderService(clock);
+        // ...
+    }
 }
 ```
 
@@ -160,7 +163,8 @@ JUnit 5 allows test class constructors; dependencies resolve via `ParameterResol
 class OrderIntegrationTest {
     private final OrderService orderService;
 
-    OrderIntegrationTest(OrderService orderService) {     // constructor injection in tests
+    @Autowired
+    OrderIntegrationTest(OrderService orderService) {
         this.orderService = orderService;
     }
 }
@@ -206,6 +210,6 @@ class OrderServiceTest {
 
 ### Context
 
-- **JUnit 4 → 5**: import paths differ (`org.junit.jupiter.api.*` vs `org.junit.*`). Mixing them in one test class breaks. Use 5 only.
+- **JUnit 4 → 5**: import paths, engines, lifecycle, and extension models differ. Mixed annotations can lead to partial or confusing discovery; migrate a class coherently and keep the Vintage engine only while legacy tests still require it.
 - **Spring Boot Test**: `@SpringBootTest` includes `@ExtendWith(SpringExtension.class)` — don't add it again.
 - **Cross-ref**: mocking with Mockito in `testing/test-mockito.md`; AssertJ depth in `testing/test-coverage-assertj.md`; Spring slices in `testing/test-spring-boot-test.md`.

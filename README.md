@@ -96,8 +96,8 @@ These are defaults, not forced migrations:
 | DTO/value objects | Prefer `record` only when Java version and frameworks support it |
 | Exceptions | Preserve causes, respect interrupts, and map failures at system boundaries |
 | Security | Avoid injected queries, leaked secrets, unsafe deserialization, weak crypto, SSRF, and client-only authorization |
-| Spring Boot | Optional framework domain; unknown modern examples use Spring Boot 3.x / `jakarta.*` / Java 17+ |
-| Persistence | Preserve existing choice; MyBatis-Plus is only an optional new China-style Spring Boot default when no choice exists |
+| Spring Boot | Optional framework domain; preserve the existing Boot line; for new/unknown examples verify the current supported line and requirements first |
+| Persistence | Preserve existing choice; choose MyBatis-Plus/JPA/JDBC/jOOQ/etc. only from project context, team preference, and query/data constraints |
 
 ## Repository layout
 
@@ -218,15 +218,15 @@ The repository-local validator checks rule counts, router references, README ind
 
 ## Assets
 
-- `assets/pom-spring-boot-3.xml`: Spring Boot 3.x Maven baseline.
-- `assets/pom-spring-boot-2.xml`: Spring Boot 2.x Maven baseline.
-- `assets/controller-service-test.java`: Controller + service + test skeleton.
-- `assets/application.yml.template`: multi-environment config template.
+- `assets/pom-spring-boot-3.xml`: opt-in Spring Boot 3.x + MyBatis-Plus Maven example.
+- `assets/pom-spring-boot-2.xml`: opt-in legacy Spring Boot 2.7 + MyBatis-Plus maintenance example.
+- `assets/controller-service-test.java`: opt-in Controller + service + test skeleton for Spring Boot 3.x/MyBatis-Plus.
+- `assets/application.yml.template`: opt-in multi-environment Spring Boot + MyBatis-Plus config template.
 
 ## Compatibility notes
 
 - Java 8 through Java 21+ projects are supported as existing targets; the agent should not modernize syntax without evidence or user request.
-- Spring Boot 3.x / `jakarta.*` / Java 17+ is only the default for unknown modern Spring Boot examples, not for all Java work.
+- Spring Boot examples must preserve the existing line; when no line exists, verify the current supported Spring Boot line and Java/Jakarta requirements before writing code.
 - Maven and Gradle are first-class supported build tools; other build systems should be preserved when already present.
 
 ## License

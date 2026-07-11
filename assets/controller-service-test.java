@@ -1,6 +1,6 @@
 // =============================================================================
 // Controller + Service + Mapper + Entity + DTO + Test skeleton.
-// MyBatis-Plus default persistence layer, Spring Boot 3.x (jakarta).
+// Opt-in MyBatis-Plus example for Spring Boot 3.x (jakarta).
 // Split these into the package structure shown in sb-project-structure.md.
 // =============================================================================
 
@@ -10,6 +10,7 @@ package com.acme.shop.order.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public record OrderRequest(
         String couponCode,
         @NotNull BigDecimal amount
 ) {
-    public record OrderItem(@NotBlank String sku, int qty) {}
+    public record OrderItem(@NotBlank String sku, @Positive int qty) {}
 }
 
 
@@ -36,11 +37,13 @@ public record OrderResponse(Long id, String userId, BigDecimal amount, String st
 package com.acme.shop.order;
 
 import com.baomidou.mybatisplus.annotation.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @TableName("t_order")
 public class Order {
     @TableId(type = IdType.ASSIGN_ID)              // snowflake
@@ -113,7 +116,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
 
     @Override
     public OrderResponse getOrder(Long id) {
-        Order order = getById(id);                  // throws if not found via MP's behavior; or use lambdaQuery
+        Order order = getById(id);                  // returns null when the row is absent
         if (order == null) {
             throw new com.acme.shop.common.OrderNotFoundException(id);
         }
@@ -189,7 +192,8 @@ class OrderServiceTest {
     @Test
     void placesOrderWithCreatedStatus() {
         // given
-        var req = new OrderRequest("u1", java.util.List.of(), null, BigDecimal.TEN);
+        var item = new OrderRequest.OrderItem("sku-1", 1);
+        var req = new OrderRequest("u1", java.util.List.of(item), null, BigDecimal.TEN);
         when(orderMapper.insert(any(Order.class))).thenAnswer(inv -> {
             ((Order) inv.getArgument(0)).setId(1L);
             return 1;

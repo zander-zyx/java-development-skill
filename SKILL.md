@@ -12,9 +12,9 @@ Router skill for general Java/JVM work. Treat Spring Boot as one supported frame
 - Output explanations in Chinese when the user uses Chinese; keep code unchanged unless editing.
 - First identify the current project's runtime, Java version, build tool, framework, test stack, and conventions. Existing evidence beats this skill's defaults.
 - Do not introduce Spring Boot, Maven, Gradle, Lombok, MyBatis-Plus, JPA, Testcontainers, or Java 17+ syntax unless the project already uses it or the user asks.
-- If creating a new project and no preference is given: use Java 17+ compatibility baseline, Maven or Gradle only after asking/inferring from context, JUnit 5, constructor-based design, SLF4J-compatible logging, and immutable DTOs where practical.
-- For Spring Boot projects with unknown versions, use Spring Boot 3.x / `jakarta.*` / Java 17+ as the compatibility baseline. For existing projects, keep their current supported line unless migration is requested.
-- For a new China-style Spring Boot service with no persistence decision, MyBatis-Plus is acceptable; do not migrate an existing JPA/plain-MyBatis project to match that preference.
+- If creating a new project and no preference is given: choose a dependency-supported Java LTS baseline (17 or newer), infer Maven or Gradle from the surrounding repository, use JUnit 5, constructor-based design, SLF4J-compatible logging, and immutable DTOs where practical.
+- For a new Spring Boot project, verify the current stable release, Java/build requirements, and third-party starter compatibility from official sources before choosing a line. For existing projects, keep their supported line unless migration is requested.
+- Do not choose a persistence framework by geography or popularity. Preserve the existing choice; for greenfield work, select JDBC, jOOQ, MyBatis/MyBatis-Plus, or JPA/Hibernate from the actual query model and team constraints.
 - Prefer constructor injection in DI frameworks. Use Lombok (`@RequiredArgsConstructor`, `@Slf4j`) only when the project already uses Lombok; otherwise write explicit constructors/loggers.
 - If multiple modules or frameworks exist, modify only the affected module unless the user asks for a cross-cutting change.
 - Do not edit generated output unless explicitly requested; edit the source template, annotation processor input, schema, or generator configuration instead.
@@ -80,7 +80,7 @@ Start with the smallest useful set:
 
 ## Assets
 
-- `assets/pom-spring-boot-3.xml`: Spring Boot 3.x Maven baseline.
-- `assets/pom-spring-boot-2.xml`: Spring Boot 2.x Maven baseline.
-- `assets/controller-service-test.java`: Controller + service + test skeleton.
-- `assets/application.yml.template`: multi-environment config template.
+- `assets/pom-spring-boot-3.xml`: opt-in Spring Boot 3.x + MyBatis-Plus Maven example.
+- `assets/pom-spring-boot-2.xml`: opt-in legacy Spring Boot 2.7 maintenance example.
+- `assets/controller-service-test.java`: opt-in Spring Boot 3 + MyBatis-Plus skeleton; split it into real files before use.
+- `assets/application.yml.template`: opt-in multi-environment Spring Boot + MyBatis-Plus config example.

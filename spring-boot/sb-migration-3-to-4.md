@@ -24,8 +24,8 @@ Spring Boot 4 is not a routine patch upgrade. It aligns with Spring Framework 7 
 
 ### Known high-risk checks
 
-- **Java**: Spring Boot 4.1 requires Java 17+; confirm CI and deployment runtime, not only local `JAVA_HOME`.
-- **Spring Framework**: Spring Boot 4.1 requires Spring Framework 7.0.x+; remove Spring 6 deprecations before upgrading.
+- **Java**: Spring Boot 4.x requires Java 17+; confirm CI and deployment runtime, not only local `JAVA_HOME`.
+- **Spring Framework**: Spring Boot 4.x requires Spring Framework 7.x; remove Spring 6 deprecations before upgrading.
 - **Build tools**: Spring Boot 4.1 documents Maven 3.6.3+ and Gradle 8.x (8.14+) or 9.x support.
 - **Servlet containers**: Spring Boot 4.1 documents Tomcat 11 / Jetty 12.1 and Servlet 6.1+ deployment. Undertow is not in the supported embedded container list, so treat Undertow usage as a migration blocker until verified.
 - **Jakarta baseline**: validate Jakarta EE / Servlet API compatibility for filters, custom starters, generated code, app servers, and third-party libraries.

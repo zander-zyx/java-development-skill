@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Spring Boot 3.x Maven pom skeleton (Java 17, jakarta, MyBatis-Plus default).
-  Copy and trim what you don't need. Edit groupId/artifactId/version.
+  Opt-in Spring Boot 3.x + MyBatis-Plus Maven example (Java 17, jakarta).
+  Verify supported versions before use; copy and trim what you don't need.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -11,7 +11,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.2</version>            <!-- adjust to current 3.x line -->
+        <version>3.5.16</version>           <!-- verified July 2026; re-check before use -->
         <relativePath/>
     </parent>
 
@@ -23,8 +23,7 @@
     <properties>
         <java.version>17</java.version>
         <maven.compiler.release>17</maven.compiler.release>
-        <mybatis-plus.version>3.5.7</mybatis-plus.version>
-        <lombok.version>1.18.34</lombok.version>
+        <mybatis-plus.version>3.5.16</mybatis-plus.version>
     </properties>
 
     <dependencies>
@@ -46,10 +45,17 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Persistence: MyBatis-Plus (default) -->
+        <!-- Persistence: opt-in MyBatis-Plus example -->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+
+        <!-- Required by PaginationInnerInterceptor in MyBatis-Plus 3.5.9+ (JDK 11+) -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
             <version>${mybatis-plus.version}</version>
         </dependency>
 
@@ -60,17 +66,10 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Connection pool (HikariCP comes with starter; this is explicit) -->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-        </dependency>
-
-        <!-- Lombok (essential allowlist: @RequiredArgsConstructor/@Slf4j/@Data) -->
+        <!-- Lombok is optional; remove it and write explicit constructors if not desired -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
 

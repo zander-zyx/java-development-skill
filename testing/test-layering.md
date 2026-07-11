@@ -31,7 +31,7 @@ Aim for the **pyramid**: many unit tests, fewer slice/integration, very few end-
 | Question | Test type | Example |
 |----------|-----------|---------|
 | "Does this logic compute the right discount?" | Unit | `pricingServiceTest`, pure JUnit + mocked deps |
-| "Does the controller map HTTP → service correctly?" | Slice | `@WebMvcTest(OrderController.class)` + `@MockBean OrderService` |
+| "Does the controller map HTTP → service correctly?" | Slice | `@WebMvcTest(OrderController.class)` + version-appropriate `@MockitoBean`/`@MockBean` |
 | "Does the JPA/MyBatis query return what I expect against a real schema?" | Slice/Integration | `@DataJpaTest` or `@SpringBootTest` + Testcontainers |
 | "Do the service + DB + mapper actually wire together and persist?" | Integration | `@SpringBootTest` + Testcontainers MySQL |
 | "Does the full HTTP path work, including security + JSON?" | E2E | `@SpringBootTest(webEnvironment=RANDOM_PORT)` + `TestRestTemplate` |

@@ -17,7 +17,7 @@ The four most common JPA disasters — N+1 queries, `LazyInitializationException
 - **Silent no-op transactions**: a missing or mis-scoped `@Transactional` means writes don't persist (or worse, run in autocommit, half-persisting).
 - **Broken equality**: Lombok `@Data` on an entity generates `equals` based on all fields — for a lazy proxy this triggers DB hits and for new entities (null id) two distinct instances compare equal, breaking `Set` semantics.
 
-### Disable Open-InnoDB in View
+### Disable Open Session in View
 
 `spring.jpa.open-in-view` defaults to `true` but should be `false`. With it on, the Hibernate session stays open for the entire HTTP request, silently masking lazy-loading problems in dev that explode as `LazyInitializationException` once you optimize.
 
@@ -84,20 +84,20 @@ Map<Long, List<OrderItem>> itemsByOrder = itemRepo.findByOrderIdIn(ids)
 ### @Transactional placement
 
 - **Service layer**: scope transactions here. A service method is the unit of business consistency.
-- **Never on controllers**: too wide — holds DB connection across HTTP client calls.
-- **Never on read-only queries unless needed**: `@Transactional(readOnly = true)` can help the DB optimize and prevents accidental writes.
+- **Avoid controller transactions**: they make the boundary too wide and can retain persistence state across serialization or remote calls.
+- **Use read-only transactions deliberately**: `@Transactional(readOnly = true)` is useful for consistent lazy reads and Hibernate flush hints, but it is not a universal database-enforced write prohibition.
 
 ```java
 @Service
 @RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final InventoryClient inventoryClient;
+    private final InventoryRepository inventoryRepository;
 
     @Transactional                              // default read-write
     public Order placeOrder(OrderRequest req) {
         Order order = orderRepository.save(buildOrder(req));
-        inventoryClient.decrement(req.items()); // same tx as save
+        inventoryRepository.reserve(req.items()); // same database transaction
         return order;
     }
 
@@ -107,6 +107,8 @@ public class OrderService {
     }
 }
 ```
+
+Do not hold a database transaction open across a slow HTTP call by default. For cross-service consistency, choose an explicit pattern such as transactional outbox, idempotent retry, saga/compensation, or a short local transaction followed by a remote call according to the business guarantee.
 
 **Reversed transaction gotcha** — if `placeOrder` calls a *private* method annotated `@Transactional`, the annotation is **ignored** (Spring AOP is proxy-based). Self-invocation bypasses the proxy. Either call through another bean or move the boundary.
 
@@ -121,7 +123,7 @@ public void importCsv(Path p) throws IOException { ... }
 
 Lombok `@Data` on `@Entity` is dangerous. It generates `equals` over every field including lazy collections (DB hit on every comparison) and the `id` (null for new entities → all unsaved instances "equal").
 
-**Use the id-based equality with a null-id guard**:
+If equality is required and the entity uses a generated ID, use a null-id guard, stable hash, and Hibernate proxy-aware type check. Prefer an immutable natural key when the domain provides one:
 
 ```java
 @Entity
@@ -132,26 +134,27 @@ public class Order {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Order other)) return false;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Order other = (Order) o;
         return id != null && id.equals(other.id);   // null id → never equal (distinct new entities)
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();    // stable across entity lifecycle; see Context
+        return Hibernate.getClass(this).hashCode(); // stable across lifecycle and proxies
     }
 }
 ```
 
-Why `getClass().hashCode()` rather than `Objects.hash(id)`: the id is null pre-persist and assigned post-persist; if hashCode changes, the entity is lost from any `HashSet`/`HashMap` it was put in before saving. A class-based hashCode is stable. This breaks the `equals`/`hashCode` contract *within a single persisted-vs-not comparison*, which is acceptable because two managed entities with the same id are the same row. (See `code-review/cr-equals-hashcode.md` for the general contract.)
+Do not use the generated ID in `hashCode`: it changes from null to assigned after persistence and can make an entity unreachable in a `HashSet`/`HashMap`. Test equality across transient, managed, detached, and proxy instances. See `code-review/cr-equals-hashcode.md` for the general contract.
 
 Better: prefer records for value types and keep `@Entity` classes hand-rolled.
 
 ### Hibernate 6 (Spring Boot 3.x) — UUID and GeneratedValue
 
-Hibernate 6 changes two things you'll trip on during 2.x → 3.x migration:
+Hibernate 6 changes ID generation and database type handling in ways that depend on the dialect and explicit mappings:
 
-1. **`@GeneratedValue(strategy = GenerationType.AUTO)` now resolves to IDENTITY** (was Sequence/Table). Existing sequences may be ignored — verify your `@SequenceGenerator` is still used, or switch to an explicit strategy.
+1. **Do not assume `GenerationType.AUTO` keeps the same physical strategy** across Hibernate/dialect upgrades. Inspect generated DDL/SQL and use an explicit sequence/identity/table strategy when schema compatibility matters.
 
 2. **Native UUID support** — you can now use UUIDs as natural keys cleanly:
 

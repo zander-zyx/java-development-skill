@@ -50,7 +50,7 @@ public long nextOrderSeq() {
 // ✅ thread-safe
 private final Map<Long, Order> cache = new ConcurrentHashMap<>();
 
-// ❌ HashMap under concurrent put → lost updates, infinite loops on resize (linked-list cycle, a real JDK bug history)
+// ❌ HashMap under concurrent mutation → data races and unspecified results
 private final Map<Long, Order> badCache = new HashMap<>();
 ```
 
@@ -152,9 +152,10 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 }
 ```
 
-Two review points:
+Review points depend on the runtime:
 - **Never pool virtual threads** — they're cheap; one per task. Using a fixed pool defeats their purpose.
-- **`synchronized` blocking a virtual thread pins the carrier** — prefer `ReentrantLock` in code that runs on virtual threads, so the carrier can move on during IO. (JDK 21+ has some pinning fixes; verify on your JDK.)
+- **JDK 21-23**: blocking inside `synchronized` can pin the carrier. Avoid long/blocking I/O while holding a monitor and use JFR's `jdk.VirtualThreadPinned` event to find real cases.
+- **JDK 24+**: JEP 491 removes nearly all monitor-related pinning, so choose `synchronized` versus `Lock` based on semantics and contention, not blanket virtual-thread advice. Native/foreign calls can still pin.
 
 ### @Transactional proxy bypass (cross-cutting)
 
@@ -170,7 +171,7 @@ public class OrderService {
     public void place(Order o) { repo.save(o); }
 }
 ```
-The `place` call is `this.place()`, not through the proxy → no transaction. Fix: split into two beans, or inject self via `@Autowired OrderService self; self.place(o)`.
+The `place` call is `this.place()`, not through the proxy → no transaction. Prefer moving the transactional boundary to the externally invoked method, splitting the collaborator into another bean, or using `TransactionTemplate` for an explicit local boundary. Avoid self-injection as a default fix because it hides the design problem and can create proxy/cycle complexity.
 
 ### Concurrency review checklist
 
@@ -182,7 +183,7 @@ When reviewing Java code, flag:
 - [ ] Two locks acquired with no obvious ordering?
 - [ ] `synchronized` over a long IO call (DB, HTTP) — holds the lock too long?
 - [ ] Self-invocation of `@Transactional` methods?
-- [ ] On Java 21+: `synchronized` inside code likely to run on virtual threads?
+- [ ] On JDK 21-23: measured virtual-thread pinning around monitors or native calls?
 
 ### Context
 

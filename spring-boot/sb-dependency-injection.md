@@ -1,14 +1,14 @@
 ---
-title: Constructor Injection with Lombok Essentials
+title: Constructor Injection and Optional Lombok
 impact: HIGH
 impactDescription: Prevents field-injection pitfalls, enables immutability and easy testing
 tags: di, constructor-injection, lombok, beans, spring
-description: Use constructor injection via final fields + @RequiredArgsConstructor; restrict Lombok to @RequiredArgsConstructor/@Slf4j/@Data
+description: Prefer constructor injection with final fields; use explicit constructors by default and Lombok only when the project already uses it
 ---
 
-## Constructor Injection with Lombok Essentials
+## Constructor Injection and Optional Lombok
 
-Use constructor injection with `final` fields as the only injection style. Generate the constructor with Lombok `@RequiredArgsConstructor`. Restrict Lombok usage to a short allowlist.
+Use constructor injection with `final` fields for required collaborators. Write the constructor explicitly unless the project already uses Lombok consistently; in that case `@RequiredArgsConstructor` is a concise option.
 
 ### Why it matters
 
@@ -17,11 +17,26 @@ Field injection (`@Autowired` on a field) is widely discouraged by the Spring te
 - **Hides dependencies** — a class with 10 `@Autowired` fields looks fine until you try to instantiate it; constructor injection makes the dependency surface visible at the call site.
 - **Breaks immutability** — `@Autowired` fields cannot be `final`, so beans are mutable after construction.
 - **Harder to test** — unit tests must use reflection (`ReflectionTestUtils`) or Spring context to inject mocks, instead of simply `new MyService(mockRepo)`.
-- **Hides circular dependencies** — constructor injection fails fast at startup; field injection may let a cycle slip through until runtime.
+- **Obscures circular dependencies** — constructor signatures make cycles visible during design and Spring reports them at startup.
 
 ### Correct
 
-Use constructor injection via `@RequiredArgsConstructor` on `final` fields:
+Without Lombok, prefer the explicit form because it works in every Java project:
+
+```java
+@Service
+public class OrderService {
+    private final OrderRepository orderRepository;
+    private final PaymentClient paymentClient;
+
+    public OrderService(OrderRepository orderRepository, PaymentClient paymentClient) {
+        this.orderRepository = orderRepository;
+        this.paymentClient = paymentClient;
+    }
+}
+```
+
+If Lombok is already an established project dependency, `@RequiredArgsConstructor` can generate the same constructor:
 
 ```java
 @Service
@@ -58,7 +73,7 @@ public class PricingService {
 }
 ```
 
-### Lombok allowlist
+### Conservative Lombok usage
 
 Use only these Lombok annotations in this skill:
 
@@ -66,10 +81,9 @@ Use only these Lombok annotations in this skill:
 |------------|---------|-------|
 | `@RequiredArgsConstructor` | Service/Component classes with final deps | The DI workhorse |
 | `@Slf4j` | Any class that logs | Replaces `private static final Logger` boilerplate |
-| `@Data` | JPA `@Entity` and mutable POJOs | Generates getters/setters/equals/hashCode/toString |
-| `@Getter` / `@Setter` | When you don't want all of `@Data` | Prefer `record` for DTOs instead |
+| `@Getter` / `@Setter` | Selected mutable POJO/entity accessors | Avoid generated equality/toString over entity associations |
 
-**Avoid**: `@AllArgsConstructor` (fights with Spring's single-constructor autowiring), `@Builder` on entities (hides required fields), `@NonNull` on fields (use Spring/JSR-305 annotations instead), `@SneakyThrows` (swallows checked exceptions silently).
+Avoid blanket Lombok annotations when they hide lifecycle or API semantics. In particular, avoid `@Data`/`@EqualsAndHashCode`/`@ToString` on persistence entities with mutable fields or associations, `@Builder` on entities when it bypasses invariants, and `@SneakyThrows` when callers need an explicit failure contract.
 
 ### Prefer record for DTOs
 
@@ -79,7 +93,7 @@ For request/response DTOs and value objects, prefer a Java `record` over `@Data`
 public record OrderRequest(String userId, List<OrderItem> items, String couponCode) {}
 ```
 
-Records are immutable, auto-generate accessors/equals/hashCode/toString, and need no Lombok at all. Reserve `@Data` for JPA entities (which need mutable setters and no-arg constructor) or legacy mutable POJOs.
+Records are immutable, auto-generate accessors/equals/hashCode/toString, and need no Lombok at all. For mutable framework-managed types, generate only the accessors that are actually required.
 
 ### Incorrect
 
@@ -141,5 +155,5 @@ void placesOrderThroughRepository() {
 
 - **Single constructor + Spring 4.3+**: Spring auto-injects when there is exactly one constructor, even without `@Autowired`. `@RequiredArgsConstructor` produces exactly one, so this just works.
 - **Circular dependencies**: SB 3.x fails startup on circular references by default (it was already discouraged in 2.x). If you hit one, the fix is usually to extract a third collaborator, not to re-enable field injection.
-- **Lombok config**: To forbid field injection at compile time, add `lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Qualifier` in `lombok.config` so qualifiers propagate onto the generated constructor params.
+- **Qualified dependencies**: if Lombok generates constructors, configure `lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Qualifier` when qualifiers must propagate to constructor parameters; verify the generated constructor in compilation tests.
 - **Cross-ref**: For JPA entity `@Data` caveats (the generated `equals`/`hashCode` can break lazy loading), see `spring-boot/sb-jpa-repository.md` and `code-review/cr-equals-hashcode.md`.

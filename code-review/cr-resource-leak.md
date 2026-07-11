@@ -33,7 +33,7 @@ public String readConfig(Path path) throws IOException {
 }
 ```
 
-Any object implementing `AutoCloseable` (most IO, JDBC, locks since Java 5 via `Lock`'s wrapper) works.
+Any object implementing `AutoCloseable` works with try-with-resources. Most I/O and JDBC resources do; `java.util.concurrent.locks.Lock` does not.
 
 ### Correct — JDBC (the classic leak site)
 
@@ -135,7 +135,7 @@ public class Leaky implements AutoCloseable {
 }
 ```
 
-Java 9+ deprecated `finalize`; Java 18+ it's disallowed by default. Use try-with-resources explicitly.
+Finalization is deprecated for removal and can be disabled on modern JDKs. Never depend on it for correctness; use try-with-resources or an explicit lifecycle instead.
 
 ### Review checklist
 

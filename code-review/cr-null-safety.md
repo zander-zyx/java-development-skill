@@ -1,14 +1,14 @@
 ---
 title: Null Safety and Optional
 impact: HIGH
-impactDescription: NPE is the #1 Java runtime exception; disciplined Optional + annotations prevent it
+impactDescription: Ambiguous null contracts cause runtime failures and compatibility bugs; explicit contracts make absence and invalid input reviewable
 tags: null, npe, optional, nullable, null-check
-description: Use Optional only as a return type; annotate fields/params with @Nullable; never pass null into APIs
+description: Make null contracts explicit; prefer Optional for ordinary absence when compatible, empty collections for no results, and project-standard nullability annotations
 ---
 
 ## Null Safety and Optional
 
-`NullPointerException` is the most-thrown exception in Java. The fixes are: prefer `Optional` as a return type, annotate nullability, and avoid passing `null` as input.
+Null handling is an API-design decision, not a mechanical rewrite. Preserve existing public contracts, then make absence, invalid input, and failure distinguishable with the project's established annotations and types.
 
 ### Why it matters
 
@@ -18,10 +18,11 @@ description: Use Optional only as a return type; annotate fields/params with @Nu
 
 ### The rules
 
-1. **`Optional` is for return types only**. Don't store it in fields, don't accept it as a parameter.
-2. **Never return `null`** from a method that might not have a result — return `Optional`.
-3. **Annotate** nullable params/fields with `@Nullable`; treat unannotated as non-null.
-4. **Don't pass `null`** as an argument — overload or use a sentinel object.
+1. **Prefer `Optional` for new return types that model ordinary absence**, but do not break an existing public signature merely to introduce it.
+2. **Prefer empty collections/arrays for “no results”** when the API contract permits it.
+3. **Use one project-standard nullability system** (`org.jspecify.annotations`, Spring annotations, JetBrains annotations, Checker Framework, or the repository's existing choice).
+4. **Reject invalid required inputs at the boundary** and preserve the documented exception type/message contract.
+5. **Avoid ambiguous `null` arguments**; use overloads, named request objects, or an explicitly documented nullable parameter.
 
 ### Correct — Optional as return type
 
@@ -52,7 +53,7 @@ public class OrderService {
 }
 ```
 
-Spring's `@Nullable`/`@NonNull` are the most common in Spring apps (in `org.springframework.lang`). IntelliJ/IDEA uses these for inspection. Alternatives: JSR-305 `javax.annotation.*`, JetBrains `org.jetbrains.annotations.*`, or Jakarta's `jakarta.annotation.*`.
+Spring projects may use `org.springframework.lang` annotations; newer codebases increasingly use JSpecify. Follow the existing repository because mixing annotation families weakens tooling and can create conflicting defaults.
 
 ### Correct — empty collections, not null
 
@@ -75,7 +76,7 @@ Use `Collections.emptyList()` or `List.of()` (immutable). Prefer immutability.
 
 **Storing Optional in a field**:
 ```java
-// ❌ Optional is not serializable, adds overhead, designed for return values
+// Usually avoid: many serializers/frameworks do not treat Optional fields as ordinary data
 private Optional<User> currentUser;
 ```
 Use `@Nullable User currentUser` instead.
@@ -85,7 +86,7 @@ Use `@Nullable User currentUser` instead.
 // ❌ caller forced to wrap; no benefit over @Nullable
 public void update(Optional<Order> order) { ... }
 ```
-Use `@Nullable Order order` or overload: `update()` + `update(Order)`.
+Prefer an overload or request type. A nullable parameter is acceptable when the repository already documents and checks that contract.
 
 **Calling `.get()` without checking**:
 ```java
@@ -110,7 +111,7 @@ public Order find(Long id) {
     return o;                                      // NPE risk for caller
 }
 ```
-Return `Optional<Order>` or throw a domain exception (`orElseThrow`). Reserve null returns for very legacy APIs and document loudly.
+For a new API, return `Optional<Order>` or throw a domain exception when absence is exceptional. For an existing API, preserve source/binary behavior unless the compatibility change is requested and tested.
 
 ### Incorrect — passing null
 
@@ -157,7 +158,7 @@ Now no `OrderRequest` instance can exist with null fields — the bug is impossi
 
 ### Review checklist
 
-- [ ] Method returns null where it could return `Optional` or empty collection?
+- [ ] Method's nullable return is undocumented or inconsistent with sibling APIs?
 - [ ] `Optional` used as a field type or method parameter?
 - [ ] `.get()` called on an Optional without an `isPresent`/`orElse` guard?
 - [ ] Field/param can be null but isn't annotated `@Nullable`?
@@ -167,7 +168,7 @@ Now no `OrderRequest` instance can exist with null fields — the bug is impossi
 
 ### Context
 
-- **`Optional` performance**: it's an object allocation per call; fine for return types, inappropriate in hot inner loops or fields. Don't over-apply.
+- **`Optional` trade-off**: it may allocate and does not fit every serialization/framework boundary. Avoid it in measured hot loops and framework-managed fields unless support is explicit.
 - **Checked exceptions vs Optional**: for "expected absence" use `Optional`; for "exceptional failure" throw. Don't return `Optional.empty()` for an error the caller must distinguish from a normal empty case.
 - **JDK patterns**: `Objects.requireNonNull(obj, msg)` validates non-null at the top of a method and throws NPE with a clear message — use it for `@NonNull` params.
 - **Cross-ref**: record validation interacts with DTO patterns in `spring-boot/sb-project-structure.md`; Optional return from JPA/MP repositories in `spring-boot/sb-jpa-repository.md` / `spring-boot/sb-mybatis-plus.md`.

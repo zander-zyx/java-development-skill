@@ -102,7 +102,7 @@ Fix: bound it (`Caffeine`, `LinkedHashMap` with `removeEldestEntry`).
 ThreadLocal<UserContext> CTX = new ThreadLocal<>();
 // missing finally { CTX.remove(); }
 ```
-Each pooled thread accumulates entries from all tasks it has run → unbounded growth.
+With one long-lived `ThreadLocal` key, each pooled thread can retain the last task's value and leak data across requests. Unbounded growth occurs when code creates many distinct `ThreadLocal` keys or stores values that themselves keep growing. Always remove values at the owning boundary.
 
 **Listener/callback not deregistered**:
 ```java

@@ -7,7 +7,8 @@
 #
 # Usage:
 #   ./install.sh              # install everywhere it can
-#   ./install.sh --force      # overwrite existing install
+#   ./install.sh --force      # overwrite existing installs in detected tools
+#   ./install.sh --all        # install to every supported tool directory
 #   ./install.sh --uninstall  # remove from all tools
 #
 # Works on macOS, Linux, and Windows (Git Bash / WSL).
@@ -15,18 +16,21 @@
 set -euo pipefail
 
 SKILL_NAME="java-development"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 SKILL_SRC="${SCRIPT_DIR}"          # the repo root IS the skill folder
 
 FORCE=0
+INSTALL_ALL=0
 UNINSTALL=0
 for arg in "$@"; do
   case "$arg" in
     --force|-f)     FORCE=1 ;;
+    --all|-a)       INSTALL_ALL=1 ;;
     --uninstall|-u) UNINSTALL=1 ;;
     --help|-h)
-      echo "Usage: ./install.sh [--force] [--uninstall]"
+      echo "Usage: ./install.sh [--force] [--all] [--uninstall]"
       echo "  --force       overwrite an existing install"
+      echo "  --all         create every supported tool directory"
       echo "  --uninstall   remove the skill from all detected tools"
       exit 0 ;;
     *) echo "Unknown arg: $arg"; exit 1 ;;
@@ -46,10 +50,9 @@ declare -a TARGETS=(
 
 DEST_FOUND=0
 for dir in "${TARGETS[@]}"; do
-  # Install only if the tool's parent config dir exists OR the user explicitly
-  # forces it (so we don't create .opencode for someone who never used it).
+  # Install only if the tool's parent config dir exists, unless --all was used.
   parent="$(dirname "$dir")"
-  if [ "$FORCE" -eq 0 ] && [ ! -d "$parent" ]; then
+  if [ "$INSTALL_ALL" -eq 0 ] && [ ! -d "$parent" ]; then
     continue
   fi
 
@@ -80,7 +83,14 @@ for dir in "${TARGETS[@]}"; do
   if ln -s "$SKILL_SRC" "$target" 2>/dev/null; then
     echo "✓ $tool: linked → $target"
   else
-    cp -R "$SKILL_SRC" "$target"
+    mkdir -p "$target"
+    (
+      cd "$SKILL_SRC"
+      tar --exclude=.git --exclude=__pycache__ --exclude='*.pyc' -cf - .
+    ) | (
+      cd "$target"
+      tar -xf -
+    )
     echo "✓ $tool: copied → $target (symlink unavailable)"
   fi
 done
@@ -94,7 +104,7 @@ fi
 if [ "$DEST_FOUND" -eq 0 ]; then
   echo "⚠ No AI tool config directories found in $HOME."
   echo "  Install at least one of: Claude Code, Codex, OpenCode, ZCode,"
-  echo "  then re-run this script. Or use --force to install to all paths."
+  echo "  then re-run this script. Or use --all to install to all paths."
   exit 1
 fi
 

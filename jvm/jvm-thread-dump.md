@@ -27,10 +27,11 @@ jcmd <pid> Thread.print > t1.txt
 
 # Force a dump even if the JVM is unresponsive (HotSpot)
 kill -3 <pid>                                 # prints to the JVM's stdout
-# or: jstack -F <pid>                        # forced, for hung JVMs
 ```
 
-Three dumps ~10 seconds apart. Threads that show **the same stack** in all three dumps are stuck (or sleeping/waiting deliberately — read the state).
+On modern JDKs, prefer `jcmd`/`jstack` attachment or `kill -3`; older `jstack -F` guidance is not portable across current JDK releases and serviceability configurations.
+
+Three dumps ~10 seconds apart. Repeated stacks identify persistent activity or waiting, not automatically a bug; interpret the state, lock owner, elapsed time, and expected pool behavior.
 
 ### Step 2: Read thread states
 
@@ -66,7 +67,7 @@ Java stack information for the threads listed above:
 
 The cycle (`Thread-1 → Thread-2 → Thread-1`) is the deadlock. Fix by acquiring locks in a consistent order — see `code-review/cr-concurrency.md`.
 
-For `java.util.concurrent.locks.Lock` deadlocks (ReentrantLock, etc.), `jstack` may not auto-detect — read the stacks manually: threads in `WAITING (on parking)` waiting on the same lock abstraction.
+HotSpot can report many deadlocks involving ownable synchronizers such as `ReentrantLock`, but do not rely on the summary alone. Group parked/waiting stacks by lock and identify the owner when the report is incomplete.
 
 ### Step 4: Identify blocked threads
 
@@ -92,12 +93,12 @@ Compare the three dumps. A thread whose top frame is identical across all three 
         at com.acme.OrderService.waitForInit(OrderService.java:80)   ← stuck here in all 3 dumps
 ```
 
-If `waitForInit` never completes (init failed silently), this thread is permanently parked — leak.
+If `waitForInit` never completes because initialization failed or no countdown path remains, this thread is permanently parked. Confirm that condition from code, logs, and multiple snapshots before calling it a leak.
 
 ### Step 6: Thread count + leak detection
 
 ```bash
-# count threads
+# count platform-thread entries in a traditional dump
 jcmd <pid> Thread.print | grep "java.lang.Thread.State" | wc -l
 # or
 jstack <pid> | grep "^\"" | wc -l
@@ -124,7 +125,7 @@ Fix: investigate slow queries / unclosed connections, or tune pool size.
 
 ### Step 8: Tools beyond jstack
 
-- **fastthread.io** — online analyzer, paste the dump, get a visualization.
+- **fastthread.io** — external hosted analyzer; upload only when policy allows and the dump has been reviewed for class names, tenant data, URLs, and internal topology.
 - **JDK Mission Control (jcmd + JFR)** — records over time, not snapshots.
 - **VisualVM** — live thread view + on-demand dumps.
 - **Arthas (Alibaba)** — popular in China for live diagnosis, includes `thread` command for dumps and deadlock detection.
@@ -141,7 +142,6 @@ When investigating a hang:
 
 ### Context
 
-- **`jstack -F`**: forces a dump on a hung JVM via `SIGQUIT`-equivalent. Use when normal `jstack` times out.
 - **Native threads**: a JVM thread maps to an OS thread (carrier thread in virtual-thread model). Native hangs (NIO, JNI) may not show useful Java frames — pair with OS-level tools (`perf`, `strace`).
-- **Virtual threads (Java 21+)**: `jcmd <pid> Thread.print` includes virtual threads; they're cheap so a high count is normal. Look for *carrier thread* pinning instead.
+- **Virtual threads (Java 21+)**: use `jcmd <pid> Thread.dump_to_file -format=text <file>` (or JSON) to include virtual threads. Traditional dumps and OS-thread counts do not represent them the same way. On JDK 21-23 inspect JFR `jdk.VirtualThreadPinned`; on JDK 24+ monitor-related pinning is largely removed by JEP 491, though native/foreign calls can still pin.
 - **Cross-ref**: high CPU often co-occurs with hangs — `jvm/jvm-cpu-high.md`; resource/thread leaks that lead here in `code-review/cr-resource-leak.md` and `code-review/cr-concurrency.md`.

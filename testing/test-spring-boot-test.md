@@ -2,8 +2,8 @@
 title: Spring Boot Test Slices
 impact: HIGH
 impactDescription: Slices give fast focused tests; @SpringBootTest is overkill for most controller/mapper verification
-tags: springboottest, webmvctest, datajpatest, mockbean, slice
-description: Use @WebMvcTest for controllers, @DataJpaTest/@MybatisPlusTest for persistence, @SpringBootTest for full wiring
+tags: springboottest, webmvctest, datajpatest, mockitobean, mockbean, slice
+description: Choose Spring test slices by responsibility, use version-appropriate bean overrides, and reserve @SpringBootTest for full wiring
 ---
 
 ## Spring Boot Test Slices
@@ -14,7 +14,7 @@ Spring Boot's slice annotations start only the relevant context. Use them by def
 
 - **Speed**: a slice loads in ~1 second; `@SpringBootTest` can take 10+ seconds. Over a suite of hundreds of tests, that's minutes vs hours.
 - **Focus**: a slice test fails for a slice-specific reason (controller mapping wrong, query wrong), not because some unrelated bean failed to wire.
-- **Cache granularity**: Spring caches the test context by configuration. Slice tests share cache; `@SpringBootTest` with `@MockBean` pollutes cache and forces rebuilds.
+- **Cache granularity**: Spring caches test contexts by configuration. Distinct profiles, properties, imports, or bean overrides can create additional contexts and slow the suite.
 
 ### @WebMvcTest — controllers
 
@@ -22,7 +22,7 @@ Spring Boot's slice annotations start only the relevant context. Use them by def
 @WebMvcTest(OrderController.class)
 class OrderControllerTest {
     @Autowired MockMvc mockMvc;
-    @MockBean OrderService orderService;                // service is mocked; only MVC layer is real
+    @MockitoBean OrderService orderService;             // Spring Framework 6.2+ / Boot 3.4+
 
     @Test
     void returns404WhenOrderMissing() throws Exception {
@@ -65,7 +65,7 @@ class OrderRepositoryTest {
 }
 ```
 
-`@DataJpaTest` defaults to H2 and `@Transactional` rollback. To use real MySQL/PG, combine with Testcontainers and `@AutoConfigureTestDatabase(replace = NONE)`:
+`@DataJpaTest` uses an available embedded database by default and rolls back each test transaction. H2 behavior is not equivalent to every production dialect. To use real MySQL/PG, combine with Testcontainers and `@AutoConfigureTestDatabase(replace = NONE)`:
 
 ```java
 @DataJpaTest
@@ -79,7 +79,7 @@ class OrderRepositoryTest {
 
 ### MyBatis-Plus mapper tests
 
-There's no first-party `@MybatisPlusTest` slice in MP, but the mybatis-plus-boot-starter-test artifact provides one, or you can use `@MybatisTest` (MyBatis own slice). Common pattern:
+MyBatis-Plus provides `@MybatisPlusTest` through its test starter; plain MyBatis provides `@MybatisTest`. If the project has neither test slice configured, a focused `@SpringBootTest` is a simple fallback:
 
 ```java
 @SpringBootTest                                          // simplest: full context but with H2/containers
@@ -97,7 +97,7 @@ class OrderMapperTest {
 }
 ```
 
-For a true slice (faster), use `@MybatisPlusTest` from `mybatis-plus-boot-starter-test` (MP 3.5.4+), which loads only mapper + datasource.
+For a focused slice, use `@MybatisPlusTest` from the MyBatis-Plus test starter matching the project's Spring Boot line. Verify the artifact/version in current MyBatis-Plus documentation; do not mix Boot 2/3/4 starters.
 
 ### @SpringBootTest — full integration
 
@@ -120,15 +120,17 @@ Use `@SpringBootTest` when:
 - You're verifying wiring across slices (service + mapper + DB).
 - A bug only reproduces with the real context.
 
-### @MockBean — and its cost
+### Bean overrides — version boundary and context cost
 
 ```java
-@MockBean OrderService orderService;                    // replaces the bean in the context
+@MockitoBean OrderService orderService;                 // Spring Framework 6.2+ / Boot 3.4+
 ```
 
-Convenient, but each unique combination of `@MockBean` creates a **new Spring context** (cache key changes). If two test classes both `@MockBean OrderService`, they share; if one also `@MockBean PaymentClient`, that's three contexts. Contexts are expensive (seconds each).
+Spring Boot 3.4 deprecated `@MockBean` for removal in Boot 4 in favor of Spring Framework's `@MockitoBean`. Preserve `@MockBean` in Boot 2 and Boot 3.0-3.3 projects; use `@MockitoBean` in Boot 3.4+ and Boot 4. Do not mix them casually during a partial migration.
 
-**For unit tests**, prefer plain `@Mock` + `@InjectMocks` (no Spring). Reserve `@MockBean` for slice tests.
+Each distinct bean-override configuration can produce a different Spring context cache key. Keep mock declarations and field qualifiers consistent across test classes to maximize context reuse.
+
+**For unit tests**, prefer plain `@Mock` plus explicit constructor creation (or `@InjectMocks` when appropriate) with no Spring context. Reserve context-level bean overrides for slice/integration tests.
 
 ### @Import for custom config in slices
 
@@ -158,7 +160,7 @@ logging:
 ### Review checklist
 
 - [ ] `@SpringBootTest` used where `@WebMvcTest`/`@DataJpaTest` would suffice?
-- [ ] Excessive `@MockBean` declarations forcing many context rebuilds?
+- [ ] Version-appropriate `@MockitoBean`/`@MockBean`, with consistent qualifiers for context reuse?
 - [ ] Slice test missing `@Import` for a required config bean?
 - [ ] H2 used for what should be a real-DB test (different dialect)?
 - [ ] `@Transactional` rollback used appropriately for DB tests?
