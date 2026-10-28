@@ -1,5 +1,5 @@
 // =============================================================================
-// Controller + Service + Mapper + Entity + DTO + Test skeleton.
+// Controller + Service + Mapper + Entity + DTO + Exception + Test skeleton.
 // Opt-in MyBatis-Plus example for Spring Boot 3.x (jakarta).
 // Split these into the package structure shown in sb-project-structure.md.
 // =============================================================================
@@ -7,6 +7,7 @@
 // ---------- com/acme/shop/order/dto/OrderRequest.java ----------
 package com.acme.shop.order.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -16,7 +17,7 @@ import java.util.List;
 
 public record OrderRequest(
         @NotBlank String userId,
-        @NotEmpty List<OrderItem> items,
+        @Valid @NotEmpty List<OrderItem> items,
         String couponCode,
         @NotNull BigDecimal amount
 ) {
@@ -86,12 +87,22 @@ public interface OrderService {
 }
 
 
+// ---------- com/acme/shop/common/OrderNotFoundException.java ----------
+package com.acme.shop.common;
+
+public class OrderNotFoundException extends RuntimeException {
+    public OrderNotFoundException(Long id) {
+        super("Order not found: " + id);
+    }
+}
+
+
 // ---------- com/acme/shop/order/OrderServiceImpl.java ----------
 package com.acme.shop.order;
 
 import com.acme.shop.order.dto.OrderRequest;
 import com.acme.shop.order.dto.OrderResponse;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -168,11 +179,12 @@ package com.acme.shop.order;
 
 import com.acme.shop.order.dto.OrderRequest;
 import com.acme.shop.order.dto.OrderResponse;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 
@@ -186,8 +198,13 @@ class OrderServiceTest {
     @Mock
     OrderMapper orderMapper;
 
-    @InjectMocks
     OrderServiceImpl service;
+
+    @BeforeEach
+    void setUp() {
+        service = new OrderServiceImpl();
+        ReflectionTestUtils.setField(service, "baseMapper", orderMapper);
+    }
 
     @Test
     void placesOrderWithCreatedStatus() {

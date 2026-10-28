@@ -63,9 +63,10 @@ For Spring Boot apps, prefer the Spring Boot parent unless the project already u
 - Do not set versions for dependencies managed by the active BOM unless there is a documented override reason.
 - Put unavoidable explicit versions in `<properties>`; avoid scattered inline versions.
 - Do not mix `javax.*` and `jakarta.*` APIs accidentally; align with the framework/runtime line.
-- Keep annotation processors (`lombok`, `mapstruct-processor`) under `maven-compiler-plugin` when the project already uses explicit processor paths.
+- Declare annotation processors (`lombok`, `mapstruct-processor`) explicitly under `maven-compiler-plugin`; do not rely on classpath processor discovery, which newer JDKs disable by default.
 - Preserve `provided`, `runtime`, `test`, and optional scopes; scope changes can alter packaged artifacts.
 - In multi-module projects, change the parent/module that actually owns the version, not every child POM.
+- Prefer the repository's `./mvnw` / `mvnw.cmd` wrapper and CI task names when present; use a global `mvn` only when no wrapper is provided.
 
 ### Evidence commands
 

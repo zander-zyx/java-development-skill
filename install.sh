@@ -2,14 +2,16 @@
 # =============================================================================
 # install.sh — cross-tool installer for the java-development skill
 #
-# Detects which AI coding tools are installed (Claude Code, Codex, OpenCode,
-# ZCode) and installs the skill into each tool's discovery directory.
+# Detects installed AI coding tools and installs the skill into their discovery
+# directories. The shared .agents/skills location is always included.
 #
 # Usage:
-#   ./install.sh              # install everywhere it can
-#   ./install.sh --force      # overwrite existing installs in detected tools
-#   ./install.sh --all        # install to every supported tool directory
-#   ./install.sh --uninstall  # remove from all tools
+#   ./install.sh                       # shared location + detected tools
+#   ./install.sh --force               # overwrite existing installs
+#   ./install.sh --all                 # install to every supported tool directory
+#   ./install.sh --copy                # copy instead of creating symlinks
+#   ./install.sh --target <skills-dir> # install to a custom skills directory
+#   ./install.sh --uninstall           # remove from all detected tools
 #
 # Works on macOS, Linux, and Windows (Git Bash / WSL).
 # =============================================================================
@@ -22,42 +24,86 @@ SKILL_SRC="${SCRIPT_DIR}"          # the repo root IS the skill folder
 FORCE=0
 INSTALL_ALL=0
 UNINSTALL=0
-for arg in "$@"; do
-  case "$arg" in
-    --force|-f)     FORCE=1 ;;
-    --all|-a)       INSTALL_ALL=1 ;;
-    --uninstall|-u) UNINSTALL=1 ;;
+COPY_ONLY=0
+CUSTOM_TARGET=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --force|-f)     FORCE=1; shift ;;
+    --all|-a)       INSTALL_ALL=1; shift ;;
+    --uninstall|-u) UNINSTALL=1; shift ;;
+    --copy)         COPY_ONLY=1; shift ;;
+    --target)
+      if [ "$#" -lt 2 ] || [ -z "$2" ]; then
+        echo "--target requires a non-empty skills directory"
+        exit 1
+      fi
+      CUSTOM_TARGET="$2"
+      shift 2 ;;
+    --target=*)
+      CUSTOM_TARGET="${1#*=}"
+      if [ -z "$CUSTOM_TARGET" ]; then
+        echo "--target requires a non-empty skills directory"
+        exit 1
+      fi
+      shift ;;
     --help|-h)
-      echo "Usage: ./install.sh [--force] [--all] [--uninstall]"
+      echo "Usage: ./install.sh [--force] [--all] [--copy] [--target <skills-dir>] [--uninstall]"
       echo "  --force       overwrite an existing install"
       echo "  --all         create every supported tool directory"
-      echo "  --uninstall   remove the skill from all detected tools"
+      echo "  --copy        copy files instead of creating symlinks"
+      echo "  --target      install to a custom skills directory"
+      echo "  --uninstall   remove the skill from detected or custom directories"
       exit 0 ;;
-    *) echo "Unknown arg: $arg"; exit 1 ;;
+    *) echo "Unknown arg: $1"; exit 1 ;;
   esac
 done
 
+if [ -n "$CUSTOM_TARGET" ] && [ "$INSTALL_ALL" -eq 1 ]; then
+  echo "--target and --all cannot be used together"
+  exit 1
+fi
+
 # --- target directories per tool (in $HOME) ----------------------------------
-# Each tool discovers skills in its own folder. We install into whichever exist.
 declare -a TARGETS=(
+  "$HOME/.agents/skills"     # shared Agent Skills location
   "$HOME/.claude/skills"     # Claude Code
-  "$HOME/.codex/skills"      # OpenAI Codex CLI
+  "$HOME/.codex/skills"      # Codex compatibility location
+  "$HOME/.cursor/skills"     # Cursor
+  "$HOME/.gemini/skills"     # Gemini CLI
+  "$HOME/.copilot/skills"    # GitHub Copilot CLI
+  "$HOME/.kimi-code/skills"  # Kimi Code
   "$HOME/.config/opencode/skills" # OpenCode global config
-  "$HOME/.opencode/skills"   # OpenCode legacy/fallback path
+  "$HOME/.opencode/skills"   # OpenCode project/legacy path when pre-existing
   "$HOME/.zcode/skills"      # ZCode
-  "$HOME/.agents/skills"     # generic cross-tool location
 )
+if [ -n "$CUSTOM_TARGET" ]; then
+  TARGETS=("$CUSTOM_TARGET")
+fi
 
 DEST_FOUND=0
 for dir in "${TARGETS[@]}"; do
-  # Install only if the tool's parent config dir exists, unless --all was used.
+  # The shared location and explicit targets are created automatically. Other
+  # tool-specific locations are used only when the tool config already exists.
   parent="$(dirname "$dir")"
-  if [ "$INSTALL_ALL" -eq 0 ] && [ ! -d "$parent" ]; then
+  if [ "$INSTALL_ALL" -eq 0 ] && [ -z "$CUSTOM_TARGET" ] \
+    && [ "$dir" != "$HOME/.agents/skills" ] && [ ! -d "$parent" ]; then
     continue
   fi
 
-  tool="$(basename "$parent" | sed 's/^\.//')"   # .claude -> claude
+  if [ -n "$CUSTOM_TARGET" ]; then
+    tool="custom"
+  else
+    tool="$(basename "$parent" | sed 's/^\.//')"   # .claude -> claude
+  fi
   target="$dir/$SKILL_NAME"
+  resolved_target="$target"
+  if [ -d "$dir" ]; then
+    resolved_target="$(cd "$dir" && pwd -P)/$SKILL_NAME"
+  fi
+  if [ "$resolved_target" = "$SKILL_SRC" ]; then
+    echo "Refusing to install over or remove the skill source directory: $SKILL_SRC"
+    exit 1
+  fi
 
   if [ "$UNINSTALL" -eq 1 ]; then
     if [ -e "$target" ] || [ -L "$target" ]; then
@@ -68,6 +114,11 @@ for dir in "${TARGETS[@]}"; do
   fi
 
   mkdir -p "$dir"
+  resolved_target="$(cd "$dir" && pwd -P)/$SKILL_NAME"
+  if [ "$resolved_target" = "$SKILL_SRC" ]; then
+    echo "Refusing to install over or remove the skill source directory: $SKILL_SRC"
+    exit 1
+  fi
   DEST_FOUND=1
 
   # Prefer a symlink so `git pull` updates propagate automatically.
@@ -80,18 +131,25 @@ for dir in "${TARGETS[@]}"; do
     rm -rf "$target"
   fi
 
-  if ln -s "$SKILL_SRC" "$target" 2>/dev/null; then
+  if [ "$COPY_ONLY" -eq 0 ] && ln -s "$SKILL_SRC" "$target" 2>/dev/null; then
     echo "✓ $tool: linked → $target"
   else
+    declare -a copy_excludes=(--exclude=.git --exclude=.video_agent --exclude=__pycache__ --exclude='*.pyc')
+    case "$resolved_target" in
+      "$SKILL_SRC"/*)
+        relative_target="${resolved_target#"$SKILL_SRC"/}"
+        copy_excludes+=(--exclude="$relative_target" --exclude="./$relative_target")
+        ;;
+    esac
     mkdir -p "$target"
     (
       cd "$SKILL_SRC"
-      tar --exclude=.git --exclude=__pycache__ --exclude='*.pyc' -cf - .
+      tar "${copy_excludes[@]}" -cf - .
     ) | (
       cd "$target"
       tar -xf -
     )
-    echo "✓ $tool: copied → $target (symlink unavailable)"
+    echo "✓ $tool: copied → $target"
   fi
 done
 

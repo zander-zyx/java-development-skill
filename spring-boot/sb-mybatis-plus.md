@@ -23,17 +23,19 @@ Apply this rule only when the project already uses MyBatis-Plus or the user has 
 <dependency>
     <groupId>com.baomidou</groupId>
     <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-    <version>3.5.17</version>
+    <version>3.5.18</version>
 </dependency>
 <!-- PaginationInnerInterceptor is optional since 3.5.9. Add it only when used. -->
 <dependency>
     <groupId>com.baomidou</groupId>
     <artifactId>mybatis-plus-jsqlparser</artifactId>
-    <version>3.5.17</version>
+    <version>3.5.18</version>
 </dependency>
 ```
 
 Use `mybatis-plus-boot-starter` for Spring Boot 2, `mybatis-plus-spring-boot3-starter` for Boot 3, and `mybatis-plus-spring-boot4-starter` for Boot 4. Prefer the MyBatis-Plus BOM when several MP modules are present, and verify the current version from official documentation instead of copying this example indefinitely.
+
+For MyBatis-Plus 3.5.18+, `IService` and `ServiceImpl` are under `com.baomidou.mybatisplus.spring.service`; earlier releases use `com.baomidou.mybatisplus.extension.service`. Keep imports aligned with the project's actual version instead of mixing old examples with a new dependency.
 
 **Critical**: register the pagination + optimistic-lock interceptor, else `Page` returns the full result set:
 

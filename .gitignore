@@ -23,6 +23,10 @@ build/
 *.hprof
 *.dump
 tmp/
+__pycache__/
+*.pyc
+.video_agent/
+.agents/
 
 # ===== 凭据/本地配置（绝不提交）=====
 .env

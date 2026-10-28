@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -77,6 +78,25 @@ class ValidatorTests(unittest.TestCase):
         )
         self.assert_rejected("invalid XML")
 
+    def test_boot2_mysql_driver_uses_managed_coordinates(self) -> None:
+        path = self.skill / "assets" / "pom-spring-boot-2.xml"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "<groupId>com.mysql</groupId>\n            <artifactId>mysql-connector-j</artifactId>",
+                "<groupId>mysql</groupId>\n            <artifactId>mysql-connector-java</artifactId>",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        self.assert_rejected("use managed com.mysql:mysql-connector-j coordinates")
+
+    def test_lombok_requires_explicit_annotation_processing(self) -> None:
+        path = self.skill / "assets" / "pom-spring-boot-3.xml"
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(r"\s*<annotationProcessorPaths>.*?</annotationProcessorPaths>", "", text, count=1, flags=re.DOTALL)
+        path.write_text(text, encoding="utf-8")
+        self.assert_rejected("Lombok requires an explicit annotationProcessorPaths entry")
+
     def test_mybatis_plus_must_be_top_level_yaml(self) -> None:
         path = self.skill / "assets" / "application.yml.template"
         text = path.read_text(encoding="utf-8")
@@ -106,15 +126,75 @@ class ValidatorTests(unittest.TestCase):
 
     def test_mybatis_plus_versions_must_stay_in_sync(self) -> None:
         path = self.skill / "assets" / "pom-spring-boot-3.xml"
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(
+            r"(<mybatis-plus.version>)[^<]+(</mybatis-plus.version>)",
+            r"\g<1>3.5.99\g<2>",
+            text,
+            count=1,
+        )
+        path.write_text(text, encoding="utf-8")
+        self.assert_rejected("MyBatis-Plus versions drift across POM templates")
+
+    def test_mybatis_plus_version_property_is_required(self) -> None:
+        path = self.skill / "assets" / "pom-spring-boot-3.xml"
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(r"\s*<mybatis-plus.version>[^<]*</mybatis-plus.version>", "", text, count=1)
+        path.write_text(text, encoding="utf-8")
+        self.assert_rejected("missing or empty MyBatis-Plus version property")
+
+    def test_mybatis_plus_version_property_cannot_be_empty(self) -> None:
+        path = self.skill / "assets" / "pom-spring-boot-3.xml"
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(
+            r"(<mybatis-plus.version>)[^<]+(</mybatis-plus.version>)",
+            r"\g<1> \g<2>",
+            text,
+            count=1,
+        )
+        path.write_text(text, encoding="utf-8")
+        self.assert_rejected("missing or empty MyBatis-Plus version property")
+
+    def test_mybatis_plus_rule_versions_match_artifacts(self) -> None:
+        path = self.skill / "spring-boot" / "sb-mybatis-plus.md"
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(
+            r"(<artifactId>mybatis-plus-jsqlparser</artifactId>\s*<version>)[^<]+(</version>)",
+            r"\g<1>3.5.99\g<2>",
+            text,
+            count=1,
+        )
+        path.write_text(text, encoding="utf-8")
+        self.assert_rejected("mybatis-plus-jsqlparser does not match POM example version")
+
+    def test_open_standard_description_length_is_supported(self) -> None:
+        path = self.skill / "SKILL.md"
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(r'^description: ".*"$', f'description: "{"x" * 600}"', text, count=1, flags=re.MULTILINE)
+        path.write_text(text, encoding="utf-8")
+        result = self.run_validator()
+        self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_excessive_description_length_is_rejected(self) -> None:
+        path = self.skill / "SKILL.md"
+        text = path.read_text(encoding="utf-8")
+        text = re.sub(r'^description: ".*"$', f'description: "{"x" * 1025}"', text, count=1, flags=re.MULTILINE)
+        path.write_text(text, encoding="utf-8")
+        self.assert_rejected("description is too long")
+
+    def test_excessive_skill_name_length_is_rejected(self) -> None:
+        path = self.skill / "SKILL.md"
         path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                "<mybatis-plus.version>3.5.17</mybatis-plus.version>",
-                "<mybatis-plus.version>3.5.99</mybatis-plus.version>",
-                1,
-            ),
+            path.read_text(encoding="utf-8").replace("name: java-development", f"name: {'a' * 65}", 1),
             encoding="utf-8",
         )
-        self.assert_rejected("MyBatis-Plus versions drift across POM templates")
+        self.assert_rejected("name is too long")
+
+    def test_skill_file_is_kept_under_500_lines(self) -> None:
+        path = self.skill / "SKILL.md"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(text + "\n".join(f"extra line {line}" for line in range(450)) + "\n", encoding="utf-8")
+        self.assert_rejected("500 lines or fewer")
 
 
 if __name__ == "__main__":

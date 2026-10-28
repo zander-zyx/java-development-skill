@@ -22,7 +22,7 @@ spring:
 # MyBatis-Plus is a top-level namespace, not spring.mybatis-plus.
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
-  type-aliases-package: com.acme.shop.**.entity
+  type-aliases-package: com.acme.shop
   configuration:
     map-underscore-to-camel-case: true             # t_order_no → orderNo
     cache-enabled: false                           # disable L2 cache unless explicitly needed

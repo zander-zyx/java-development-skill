@@ -122,18 +122,19 @@ def check_skill(errors: list[str]) -> None:
     for key in sorted(unexpected):
         fail(errors, f"SKILL.md: unsupported frontmatter key '{key}'")
     name = fm.get("name", "")
+    if len(name) > 64:
+        fail(errors, f"SKILL.md: name is too long ({len(name)} chars; maximum is 64)")
     if name and name != ROOT.name:
         fail(errors, f"SKILL.md: name must match skill directory '{ROOT.name}', got '{name}'")
     if name and not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name):
         fail(errors, "SKILL.md: name must contain lowercase letters, numbers, and single hyphens only")
 
     text = read(path)
-    frontmatter = text.split("---", 2)[1] if text.startswith("---") and len(text.split("---", 2)) >= 3 else ""
-    if len(frontmatter) > 1024:
-        fail(errors, f"SKILL.md: frontmatter is too long ({len(frontmatter)} chars; keep under 1024)")
+    if len(text.splitlines()) > 500:
+        fail(errors, "SKILL.md: keep the main skill file at 500 lines or fewer")
     description = fm.get("description", "")
-    if len(description) > 500:
-        fail(errors, f"SKILL.md: description is too long ({len(description)} chars; keep under 500)")
+    if len(description) > 1024:
+        fail(errors, f"SKILL.md: description is too long ({len(description)} chars; maximum is 1024)")
 
     refs = sorted(set(re.findall(r"`([^`]+\.md)`", text)))
     for ref in refs:
@@ -281,20 +282,51 @@ def check_assets(errors: list[str]) -> None:
     mybatis_versions: dict[str, str] = {}
     ns = {"m": "http://maven.apache.org/POM/4.0.0"}
     for filename in ["pom-spring-boot-2.xml", "pom-spring-boot-3.xml"]:
+        path = assets / filename
         tree = parsed_xml.get(filename)
         if tree is None:
+            if not path.is_file():
+                fail(errors, f"{path.relative_to(ROOT)}: missing required POM template")
             continue
         version = tree.findtext(".//m:properties/m:mybatis-plus.version", namespaces=ns)
-        if version:
-            mybatis_versions[filename] = version.strip()
+        if not version or not version.strip():
+            fail(errors, f"{path.relative_to(ROOT)}: missing or empty MyBatis-Plus version property")
+            continue
+        mybatis_versions[filename] = version.strip()
 
     if len(set(mybatis_versions.values())) > 1:
         fail(errors, f"assets: MyBatis-Plus versions drift across POM templates: {mybatis_versions}")
 
+    for filename, tree in parsed_xml.items():
+        dependencies = tree.findall(".//m:dependencies/m:dependency", ns)
+        has_lombok = any(
+            (dependency.findtext("m:groupId", namespaces=ns), dependency.findtext("m:artifactId", namespaces=ns))
+            == ("org.projectlombok", "lombok")
+            for dependency in dependencies
+        )
+        processor_paths = tree.findall(".//m:annotationProcessorPaths/m:path", ns)
+        has_lombok_processor = any(
+            (path.findtext("m:groupId", namespaces=ns), path.findtext("m:artifactId", namespaces=ns))
+            == ("org.projectlombok", "lombok")
+            for path in processor_paths
+        )
+        if has_lombok and not has_lombok_processor:
+            fail(errors, f"assets/{filename}: Lombok requires an explicit annotationProcessorPaths entry")
+
+    boot2_tree = parsed_xml.get("pom-spring-boot-2.xml")
+    if boot2_tree is not None:
+        for dependency in boot2_tree.findall(".//m:dependencies/m:dependency", ns):
+            group_id = dependency.findtext("m:groupId", namespaces=ns)
+            artifact_id = dependency.findtext("m:artifactId", namespaces=ns)
+            if (group_id, artifact_id) == ("mysql", "mysql-connector-java"):
+                fail(errors, "assets/pom-spring-boot-2.xml: use managed com.mysql:mysql-connector-j coordinates")
+
     rule_text = read(ROOT / "spring-boot" / "sb-mybatis-plus.md")
-    for filename, version in mybatis_versions.items():
-        if f"<version>{version}</version>" not in rule_text:
-            fail(errors, f"spring-boot/sb-mybatis-plus.md: missing MyBatis-Plus example version from {filename}: {version}")
+    for version in sorted(set(mybatis_versions.values())):
+        for artifact_id in ["mybatis-plus-spring-boot3-starter", "mybatis-plus-jsqlparser"]:
+            pattern = rf"<artifactId>{re.escape(artifact_id)}</artifactId>\s*<version>{re.escape(version)}</version>"
+            if not re.search(pattern, rule_text):
+                fail(errors, f"spring-boot/sb-mybatis-plus.md: {artifact_id} does not match POM example version {version}")
 
     yaml_path = assets / "application.yml.template"
     yaml_text = read(yaml_path)

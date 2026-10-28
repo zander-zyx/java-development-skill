@@ -1,6 +1,6 @@
 ---
 name: java-development
-description: "Use when working on any Java or JVM project: plain Java, libraries, CLI tools, Maven/Gradle builds, Spring Boot, Jakarta EE, MyBatis/MyBatis-Plus, JPA/Hibernate, Lombok, Java tests, Java code review, API design, exception handling, security review, refactoring, dependencies, Java version upgrades, javax/jakarta migrations, or JVM runtime troubleshooting such as GC, OOM, thread dumps, deadlocks, high CPU, and performance issues."
+description: "Use when working on any Java or JVM project: plain Java, libraries, CLI tools, Android Java, Maven/Gradle builds, Spring Boot, Jakarta EE, Quarkus, Micronaut, MyBatis/MyBatis-Plus, JPA/Hibernate, Lombok, Java tests, code review, API design, exception handling, security review, refactoring, dependencies, Java upgrades, javax/jakarta migrations, or JVM troubleshooting such as GC, OOM, thread dumps, deadlocks, high CPU, and performance issues."
 ---
 
 # Java Development Agent
@@ -9,7 +9,7 @@ Router skill for general Java/JVM work. Treat Spring Boot as one supported frame
 
 ## Defaults
 
-- Output explanations in Chinese when the user uses Chinese; keep code unchanged unless editing.
+- Respond in the user's language; keep code unchanged unless editing.
 - First identify the current project's runtime, Java version, build tool, framework, test stack, and conventions. Existing evidence beats this skill's defaults.
 - Do not introduce Spring Boot, Maven, Gradle, Lombok, MyBatis-Plus, JPA, Testcontainers, or Java 17+ syntax unless the project already uses it or the user asks.
 - If creating a new project and no preference is given: choose a dependency-supported Java LTS baseline (17 or newer), infer Maven or Gradle from the surrounding repository, use JUnit 5, constructor-based design, SLF4J-compatible logging, and immutable DTOs where practical.

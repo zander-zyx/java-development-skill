@@ -24,6 +24,39 @@
 4. **按需加载上下文** —— `SKILL.md` 只路由到当前任务需要的规则，不一次性加载全部文档。
 5. **生产安全默认值** —— 不暗中转换技术栈，不做无关大重构，不顺手升级依赖/Java 版本，不编造业务规则。
 
+## 安装
+
+本 skill 遵循开放的 [Agent Skills 规范](https://agentskills.io/specification)：单个 `SKILL.md`、相对资源路径、无平台专用 frontmatter。在 macOS、Linux、Git Bash 或 WSL 的 Bash 中，从 skill 根目录运行：
+
+```bash
+./install.sh
+```
+
+默认安装到 `~/.agents/skills/java-development`。Codex、Cursor、Gemini CLI、OpenCode 和 GitHub Copilot 都能发现这个共享位置；同时还会安装到当前机器上已存在配置目录的其他工具。
+
+| 工具 | 额外原生目录 |
+|---|---|
+| Claude Code | `~/.claude/skills` |
+| Codex 兼容目录 | `~/.codex/skills` |
+| Cursor | `~/.cursor/skills` |
+| Gemini CLI | `~/.gemini/skills` |
+| GitHub Copilot CLI | `~/.copilot/skills` |
+| Kimi Code | `~/.kimi-code/skills` |
+| OpenCode | `~/.config/opencode/skills` |
+| ZCode | `~/.zcode/skills` |
+
+常用方式：
+
+```bash
+./install.sh --all                                      # 安装到所有已知目录
+./install.sh --copy                                     # 复制文件，不使用符号链接
+./install.sh --copy --target "/path/to/project/.agents/skills"
+./install.sh --uninstall                               # 卸载已检测到的安装
+./install.sh --uninstall --target "/path/to/project/.agents/skills"
+```
+
+其他兼容 Agent Skills 的工具，可以使用 `--target`，或手动把完整的 `java-development` 目录复制到该工具的 skills 根目录。目录名必须保持不变，以便与 frontmatter 的 `name` 一致。开发时优先使用符号链接，`git pull` 后会自动更新；不支持链接或需要独立副本时使用 `--copy`。
+
 ## Agent 行为契约
 
 启用该 skill 时，Agent 应该：
@@ -147,15 +180,14 @@ java-development/
 
 发布前运行：
 
-```powershell
+```bash
 python scripts/validate-skill.py
-
-$venv = Join-Path $env:TEMP 'skill-validate-venv'
-if (!(Test-Path $venv)) { python -m venv $venv }
-& (Join-Path $venv 'Scripts\python.exe') -m pip install -q PyYAML
-& (Join-Path $venv 'Scripts\python.exe') 'C:/Users/zd/.codex/skills/.system/skill-creator/scripts/quick_validate.py' 'D:/Java_project/ai_project/skills/java-development'
-
+python -m unittest scripts/test-validate-skill.py -v
+bash scripts/test-install.sh
 git diff --check
+
+# 已安装 skills-ref 时，可额外执行开放规范校验：
+skills-ref validate .
 ```
 
 ## Assets

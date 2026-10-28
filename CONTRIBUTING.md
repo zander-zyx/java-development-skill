@@ -53,13 +53,13 @@ Do not add `alwaysApply`. Route rules from `SKILL.md` so the agent loads only wh
 
 Run before opening a PR:
 
-```powershell
+```bash
 python scripts/validate-skill.py
+python -m unittest scripts/test-validate-skill.py -v
+bash scripts/test-install.sh
 
-$venv = Join-Path $env:TEMP 'skill-validate-venv'
-if (!(Test-Path $venv)) { python -m venv $venv }
-& (Join-Path $venv 'Scripts\python.exe') -m pip install -q PyYAML
-& (Join-Path $venv 'Scripts\python.exe') 'C:/Users/zd/.codex/skills/.system/skill-creator/scripts/quick_validate.py' 'D:/Java_project/ai_project/skills/java-development'
+# Optional open-standard validation when skills-ref is installed:
+skills-ref validate .
 ```
 
 Also run `git diff --check` before publishing.
@@ -136,13 +136,13 @@ description: 一句话总结
 
 提交 PR 前运行：
 
-```powershell
+```bash
 python scripts/validate-skill.py
+python -m unittest scripts/test-validate-skill.py -v
+bash scripts/test-install.sh
 
-$venv = Join-Path $env:TEMP 'skill-validate-venv'
-if (!(Test-Path $venv)) { python -m venv $venv }
-& (Join-Path $venv 'Scripts\python.exe') -m pip install -q PyYAML
-& (Join-Path $venv 'Scripts\python.exe') 'C:/Users/zd/.codex/skills/.system/skill-creator/scripts/quick_validate.py' 'D:/Java_project/ai_project/skills/java-development'
+# Optional open-standard validation when skills-ref is installed:
+skills-ref validate .
 ```
 
 同时运行 `git diff --check`。

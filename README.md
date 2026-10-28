@@ -44,6 +44,39 @@ Use this skill for:
 - Java code review for concurrency, null safety, resource leaks, streams, equality, and security.
 - JVM incident triage: OOM, heap dumps, high CPU, thread dumps, deadlocks, GC tuning, and GC logs.
 
+## Install
+
+The skill uses the portable [Agent Skills specification](https://agentskills.io/specification): one `SKILL.md`, relative resource paths, and no platform-specific frontmatter. Run these commands from the skill root with Bash on macOS, Linux, Git Bash, or WSL:
+
+```bash
+./install.sh
+```
+
+The default installs to `~/.agents/skills/java-development`, a shared location discovered by Codex, Cursor, Gemini CLI, OpenCode, and GitHub Copilot, plus native directories for tools already installed on the machine.
+
+| Tool | Additional native directory |
+|---|---|
+| Claude Code | `~/.claude/skills` |
+| Codex compatibility | `~/.codex/skills` |
+| Cursor | `~/.cursor/skills` |
+| Gemini CLI | `~/.gemini/skills` |
+| GitHub Copilot CLI | `~/.copilot/skills` |
+| Kimi Code | `~/.kimi-code/skills` |
+| OpenCode | `~/.config/opencode/skills` |
+| ZCode | `~/.zcode/skills` |
+
+Useful variants:
+
+```bash
+./install.sh --all                                      # every known directory
+./install.sh --copy                                     # copy instead of symlink
+./install.sh --copy --target "/path/to/project/.agents/skills"
+./install.sh --uninstall                               # remove detected installs
+./install.sh --uninstall --target "/path/to/project/.agents/skills"
+```
+
+For another Agent Skills-compatible tool, copy the whole `java-development` directory into that tool's skills root or use `--target`. Keep the directory name unchanged so it matches the frontmatter `name`. Symlinks are preferred for development because `git pull` updates them automatically; use `--copy` for independent copies or environments without symlink support.
+
 ## Agent contract
 
 When this skill is active, the agent should:
@@ -203,15 +236,14 @@ See more examples in `examples/usage-examples.md` and `examples/usage-examples.z
 
 Run before publishing changes:
 
-```powershell
+```bash
 python scripts/validate-skill.py
-
-$venv = Join-Path $env:TEMP 'skill-validate-venv'
-if (!(Test-Path $venv)) { python -m venv $venv }
-& (Join-Path $venv 'Scripts\python.exe') -m pip install -q PyYAML
-& (Join-Path $venv 'Scripts\python.exe') 'C:/Users/zd/.codex/skills/.system/skill-creator/scripts/quick_validate.py' 'D:/Java_project/ai_project/skills/java-development'
-
+python -m unittest scripts/test-validate-skill.py -v
+bash scripts/test-install.sh
 git diff --check
+
+# Optional open-standard validation when skills-ref is installed:
+skills-ref validate .
 ```
 
 The repository-local validator checks rule counts, router references, README index consistency, impact values, stale wording, file hygiene, machine-readable metadata, and official skill frontmatter compatibility.
