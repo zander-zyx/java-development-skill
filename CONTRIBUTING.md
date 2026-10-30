@@ -38,7 +38,18 @@ Boundary conditions and cases where the rule should not be applied.
 Version notes, references, and cross-refs to related rules.
 ```
 
-Do not add `alwaysApply`. Route rules from `SKILL.md` so the agent loads only what the current task needs.
+Section rules (enforced by `scripts/validate-skill.py`):
+
+- Headings may continue after the standard prefix (e.g. `### Correct — layered config`, `### When NOT to use — migration`), but every rule file must contain all four prefixes: `### Why it matters`, `### Correct`, `### When NOT to use`, `### Context`.
+- `Why it matters` must state concrete production harm or maintenance cost — no generic best-practice filler.
+- Prefer `// Bad (Avoid)` / `// Good (Preferred)` minimal contrasts inside `Correct` sections.
+- Do not add `alwaysApply`. Route rules from `SKILL.md` so the agent loads only what the current task needs.
+
+## Metadata and counts
+
+- When adding or removing a rule file, update the `ruleCounts` object in `metadata.json` (total plus the affected directory) and the README markers — the validator compares them against the real file counts.
+- Every rule file must be routed from `SKILL.md` (no orphan files), and every path referenced in backticks must exist.
+- Distribution is whitelist-based: `install.sh` copies only `SKILL.md`, `metadata.json`, `agents/`, `assets/`, and the six rule directories. Never broaden the copy to include repository-management files.
 
 ## Code style for examples
 
@@ -121,7 +132,18 @@ description: 一句话总结
 版本差异、参考资料、相关规则。
 ```
 
-不要添加 `alwaysApply`。统一通过 `SKILL.md` 路由，保证 Agent 只加载当前任务需要的规则。
+章节规则（由 `scripts/validate-skill.py` 强制校验）：
+
+- 标题可以在标准前缀后继续补充说明（如 `### Correct — layered config`、`### When NOT to use — migration`），但每个规则文件必须包含全部四个前缀：`### Why it matters`、`### Correct`、`### When NOT to use`、`### Context`。
+- `Why it matters` 必须写具体的生产故障或维护成本，不写空泛的最佳实践。
+- `Correct` 小节优先使用 `// Bad (Avoid)` / `// Good (Preferred)` 极简对比。
+- 不要添加 `alwaysApply`。统一通过 `SKILL.md` 路由，保证 Agent 只加载当前任务需要的规则。
+
+## 元数据与计数
+
+- 新增或删除规则文件时，必须同步更新 `metadata.json` 的 `ruleCounts` 对象（total 与对应目录）以及 README 中的计数标记——校验脚本会将它们与实际文件数严格比对。
+- 每个规则文件必须被 `SKILL.md` 路由（不允许孤儿文件）；反引号中引用的所有路径必须真实存在。
+- 分发基于白名单：`install.sh` 只复制 `SKILL.md`、`metadata.json`、`agents/`、`assets/` 和六个规则目录。严禁把复制范围扩大到仓库管理文件。
 
 ## 示例代码风格
 
