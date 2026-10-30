@@ -10,6 +10,26 @@ description: Use unit tests for logic, Spring slices for wiring, integration tes
 
 Match the test type to what you're verifying. Wrong layer = either too slow (integration for pure logic) or too shallow (unit test for a DB query that mocks the DB away).
 
+### Why it matters
+
+The ice-cream-cone test suite (many E2E, few unit tests) is a real project killer: a 40-minute CI run means developers batch changes and stop trusting tests; flaky full-stack tests get `@Disabled` one by one until coverage is theater; and a mocked-away DB query "passes" while the real SQL is wrong — the bug ships and the suite stays green. Layer choice is the difference between a suite that catches regressions in seconds and one that catches them in production.
+
+### Correct — pick the layer by the question
+
+```java
+// Bad (Avoid) — integration test to verify arithmetic
+@SpringBootTest
+class DiscountTest {
+    @Test void tenPercentOff() { assertThat(service.price(req)).isEqualTo(90); }   // 20s context boot for one line of logic
+}
+
+// Good (Preferred) — unit test for logic, slice for wiring, integration for boundaries
+@ExtendWith(MockitoExtension.class)          // milliseconds
+class DiscountTest {
+    @Test void tenPercentOff() { assertThat(new Pricer(clock).price(req)).isEqualTo(90); }
+}
+```
+
 ### The layers
 
 ```
@@ -134,6 +154,12 @@ Mock the **dependencies** of the class under test, never the class itself.
 ### Don't mock types you don't own
 
 Mocking `RestClient`, `Clock`, or third-party classes creates tests coupled to a library you don't control. Wrap them in your own interface (`PaymentGateway`) and mock that. When the library changes, only your adapter breaks, not every test.
+
+### When NOT to use
+
+- Do not force a layering pyramid onto a small library with no Spring context — plain unit tests are the whole pyramid there.
+- Do not add Testcontainers integration tests during a hotfix; verify the fix at the narrowest layer and add the regression test as a follow-up.
+- Teams with an established, working test strategy should keep it; this rule guides new work, not rewrites of existing suites.
 
 ### Context
 

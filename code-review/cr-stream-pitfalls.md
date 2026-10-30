@@ -129,6 +129,13 @@ String label = orderRepo.findById(id)
     .orElse("UNKNOWN");
 ```
 
+### When NOT to use
+
+- Streams are not a mandate: a `for` loop with `break`/`continue` and early returns is often clearer than a forced pipeline — do not block a PR for not using streams.
+- Do not rewrite working imperative code to streams as part of an unrelated change; that churn creates review noise and regression risk.
+- Primitive-heavy, allocation-sensitive inner loops may legitimately avoid streams; judge on evidence, not preference.
+- Parallel streams stay banned in request-serving code unless the workload is CPU-bound and measured; do not accept "it's faster" without a number.
+
 ### Review checklist
 
 - [ ] `parallelStream()` used? (Justify with measurement; default to `stream()`.)

@@ -16,7 +16,7 @@ Actuator gives you health checks, metrics, and runtime info. Expose what each en
 - **Metrics feed your dashboards**: Micrometer + actuator `/metrics` is the standard Prometheus scrape target.
 - **Over-exposure**: `/env`, `/heapdump`, `/threaddump` leak secrets and internals — never expose in prod without auth.
 
-### Configure per environment
+### Correct — configure per environment
 
 ```yaml
 # application.yml (shared)
@@ -182,6 +182,13 @@ management.endpoint.health.show-details: always
 ```
 
 No timeout on probes — if a health check hangs, K8s times out and the pod stays in a bad state longer. Keep health checks fast (<1s); offload slow checks to a separate async-updated indicator.
+
+### When NOT to use
+
+- Do not add actuator endpoints to a library or shared module — endpoint exposure is an application-level (and environment-level) decision.
+- Do not wire liveness probes to downstream dependencies (DB, Redis): a dependency blip then restarts every pod simultaneously and turns an outage into a thundering herd. Liveness = "is this JVM alive"; readiness = "can it serve".
+- Do not expose `*` in any profile that is reachable outside localhost, including staging that shares a network with prod.
+- Skip custom health indicators for checks slower than ~1s — move them to metrics or async refresh instead of blocking the probe.
 
 ### Context
 

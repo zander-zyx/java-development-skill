@@ -151,6 +151,12 @@ Scattered `@Value`:
 - **Prod**: inject via env var (`DB_PASSWORD`), Kubernetes secret, or Vault/Spring Cloud Config. The app reads `${DB_PASSWORD}` and never sees the literal.
 - **Found a committed secret?**: treat it as compromised — rotate immediately, don't just delete the line (git history retains it).
 
+### When NOT to use
+
+- Do not force `@ConfigurationProperties` rewrites on a working `@Value` codebase as part of an unrelated change; migrate config style only when the config itself is being touched.
+- Do not multiply profiles per customer/tenant — profiles are for environments (dev/test/staging/prod), not data partitioning; tenant routing belongs in the data layer.
+- Do not put machine-specific absolute paths or developer-local ports in shared profile files; keep them in gitignored local overrides.
+
 ### Context
 
 - **Profile activation order**: `application.yml` is always loaded; profile files override it. Multiple active profiles apply in declaration order; later wins.

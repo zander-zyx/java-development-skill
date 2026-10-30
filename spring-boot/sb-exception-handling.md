@@ -173,6 +173,12 @@ public Order importFromFile(Path p) throws IOException {
 
 Wrap or map it: either catch in the service and rethrow as a domain exception, or add an `@ExceptionHandler(IOException.class)` mapping.
 
+### When NOT to use
+
+- Do not push `@RestControllerAdvice` into a non-REST module (batch, messaging) — map failures to that boundary's contract (exit code, dead-letter, job status) instead; see `core/java-exception-handling.md`.
+- Do not map every exception type to a bespoke handler; unknown failures belong in one generic 500 handler that logs with a traceId.
+- Do not swallow validation errors into a 200 response with an error body — keep 4xx semantics for clients and monitoring.
+
 ### Context
 
 - **Order of handlers**: Spring picks the most specific `@ExceptionHandler` for the thrown type. Put the catch-all `Exception.class` handler last; it can't be overridden by specificity alone if a more specific handler exists.

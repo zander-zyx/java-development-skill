@@ -13,7 +13,7 @@ Use this before non-trivial Java changes, especially when the project is not obv
 ### Why it matters
 
 - Java projects vary widely: CLI tools, libraries, servlet apps, Spring Boot services, Android modules, batch jobs, plugins, and legacy monoliths need different defaults.
-- build-tools/runtime choices are contracts. Changing Java level, build tool, framework, logging, or persistence without evidence can break CI and deployment.
+- build-tools/runtime choices are contracts. Changing Java level, build tool, framework, logging, or persistence without evidence can break CI and deployment — e.g. adding a Spring Boot starter to a plain Java library drags in a web container and breaks downstream users who shade the jar; bumping `<java.version>` in a shared module silently breaks every consumer still on the old JDK.
 - A useful Java agent should improve the current project, not convert it to the agent's favorite stack.
 
 ### First classify the project
@@ -38,7 +38,7 @@ Before editing, inspect only what is needed:
 - Prefer immutable DTO/value objects (`record` on Java 16+, final classes otherwise) when frameworks allow it.
 - Keep exceptions actionable: preserve causes, avoid swallowing interrupts, and do not convert every failure to `RuntimeException` without context.
 
-### When NOT to apply a default
+### When NOT to use these defaults
 
 - Do not add Spring Boot, Lombok, MyBatis-Plus, JPA, MapStruct, or Testcontainers just because this skill contains rules for them.
 - Do not change Java 8/11 code to Java 17+ syntax unless the project already targets that runtime or the user requests modernization.

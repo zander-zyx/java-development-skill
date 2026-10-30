@@ -16,6 +16,25 @@ When the project uses JUnit Jupiter, use its lifecycle hooks, parameterized test
 - **Lifecycle hooks** (`@BeforeEach`, `@BeforeAll`) give clean isolation; running tests in any order doesn't break anything.
 - **Extensions** (`@ExtendWith`) replace the JUnit 4 runner model — composable, no single-runner limit.
 
+### Correct — one test, one behavior, one assertion story
+
+```java
+// Bad (Avoid) — loop-over-data inside the test hides which input failed
+@Test
+void discounts() {
+    for (BigDecimal price : List.of("100", "200", "300")) {
+        assertThat(discount(price)).isNotNull();   // failure reports "loop line", not the input
+    }
+}
+
+// Good (Preferred) — parameterized: failure names the exact input
+@ParameterizedTest
+@ValueSource(strings = {"100", "200", "300"})
+void appliesTieredDiscount(String price) {
+    assertThat(discount(new BigDecimal(price))).isEqualTo(expectedFor(price));
+}
+```
+
 ### Lifecycle
 
 ```java
@@ -197,6 +216,12 @@ class OrderServiceTest {
 - **Don't** depend on test order — tests must be independent. `@Order` exists but is a smell.
 - **Don't** leave `System.out.println` in tests — assertions only. If you must debug, log to stderr.
 - **Don't** test private methods directly — test through the public API. If a private method is complex enough to need its own test, extract a class.
+
+### When NOT to use
+
+- Do not migrate JUnit 4 / TestNG suites to Jupiter as a side effect of a feature change; keep the project's engine until migration is its own task.
+- Do not parameterize tests with one trivial input — a plain `@Test` is clearer.
+- `@Nested` classes are for genuinely related case groups; do not nest for organization alone — flat classes grep better.
 
 ### Review checklist
 

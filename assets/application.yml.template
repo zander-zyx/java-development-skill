@@ -19,6 +19,21 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
 
+  # Redis — namespace differs across Boot lines:
+  #   SB 3.x+: spring.data.redis.*      SB 2.x: spring.redis.*  (older key is NOT read by 3.x)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2s
+      lettuce:
+        pool:
+          max-active: 16                           # connection pool needs commons-pool2 on the classpath
+          max-idle: 8
+          min-idle: 2
+          max-wait: 1s
+
 # MyBatis-Plus is a top-level namespace, not spring.mybatis-plus.
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
@@ -36,9 +51,12 @@ mybatis-plus:
 
 server:
   port: ${PORT:8080}
-  shutdown: graceful                               # let in-flight requests finish on SIGTERM
+  shutdown: graceful                               # let in-flight requests finish on SIGTERM (SB 2.3+; pair with
+                                                   # spring.lifecycle.timeout-per-shutdown-phase if phases are slow)
 
 # Actuator / observability — see sb-actuator-health.md
+# Keys below work on 2.x and 3.x; note: 2.x exposes httptrace/sessions by default in some setups —
+# always list endpoints explicitly (include:) instead of "*" in any shared environment.
 management:
   endpoints:
     web:

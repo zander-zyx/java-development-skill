@@ -16,6 +16,18 @@ Spring Boot's slice annotations start only the relevant context. Use them by def
 - **Focus**: a slice test fails for a slice-specific reason (controller mapping wrong, query wrong), not because some unrelated bean failed to wire.
 - **Cache granularity**: Spring caches test contexts by configuration. Distinct profiles, properties, imports, or bean overrides can create additional contexts and slow the suite.
 
+### Correct — narrowest slice that answers the question
+
+```java
+// Bad (Avoid) — full context to check one controller mapping
+@SpringBootTest
+class OrderControllerTest { ... }              // boots everything; fails for unrelated wiring reasons
+
+// Good (Preferred) — the web slice
+@WebMvcTest(OrderController.class)
+class OrderControllerTest { ... }              // loads only MVC wiring; milliseconds-to-seconds
+```
+
 ### @WebMvcTest — controllers
 
 ```java
@@ -156,6 +168,12 @@ logging:
   level:
     org.hibernate.SQL: debug
 ```
+
+### When NOT to use
+
+- Do not add Spring slices to a non-Spring project — plain JUnit + Mockito covers it.
+- Do not use `@SpringBootTest` to verify a single mapper or controller; the narrow slice exists for that.
+- On Spring Boot < 3.4 / Framework < 6.2, `@MockitoBean` does not exist — use the project's `@MockBean`; do not mass-migrate annotations until the line supports it.
 
 ### Review checklist
 

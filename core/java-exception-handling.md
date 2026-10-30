@@ -12,13 +12,17 @@ Use this when adding or reviewing exception handling, retries, async code, trans
 
 ### Why it matters
 
-Incorrect exception handling often looks safe in tests but fails in production: root causes disappear, threads ignore cancellation, retries multiply side effects, and callers receive misleading errors.
+Incorrect exception handling often looks safe in tests but fails in production: an `catch (Exception e) { return null; }` turns a database outage into mysterious `NullPointerException`s three layers away; swallowing `InterruptedException` leaves a shutdown hook waiting forever on a thread that never notices cancellation; a retry without idempotency double-charges a payment when the first request actually succeeded. Root causes disappear, threads ignore cancellation, retries multiply side effects, and callers receive misleading errors.
 
 ### Correct
 
 Preserve the cause and add useful context:
 
 ```java
+// Bad (Avoid) — cause discarded; production logs show only the wrapper
+throw new OrderClientException("fetch failed");
+
+// Good (Preferred) — cause chained, business key included
 try {
     return client.fetchOrder(orderId);
 } catch (IOException e) {

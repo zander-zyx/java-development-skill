@@ -154,7 +154,26 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 
 Review points depend on the runtime:
 - **Never pool virtual threads** — they're cheap; one per task. Using a fixed pool defeats their purpose.
-- **JDK 21-23**: blocking inside `synchronized` can pin the carrier. Avoid long/blocking I/O while holding a monitor and use JFR's `jdk.VirtualThreadPinned` event to find real cases.
+- **JDK 21-23**: blocking inside `synchronized` can pin the carrier. Avoid long/blocking I/O while holding a monitor and use JFR's `jdk.VirtualThreadPinned` event to find real cases. Substitute `ReentrantLock` for `synchronized` around blocking sections — it parks the virtual thread without pinning.
+- **Limit concurrency with a `Semaphore`, not a pool size** — bound downstream pressure (DB connections, remote API quotas) while still creating one virtual thread per task:
+
+```java
+private final Semaphore dbPermits = new Semaphore(50);   // protect the downstream resource
+
+void fetchAll(List<Callable<Order>> tasks) throws Exception {
+    try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+        List<Future<Order>> futures = new ArrayList<>();
+        for (Callable<Order> t : tasks) {
+            dbPermits.acquire();                          // bound in-flight tasks before submitting
+            futures.add(executor.submit(() -> {
+                try { return t.call(); } finally { dbPermits.release(); }
+            }));
+        }
+        for (Future<Order> f : futures) f.get();          // propagate failures
+    }
+}
+```
+
 - **JDK 24+**: JEP 491 removes nearly all monitor-related pinning, so choose `synchronized` versus `Lock` based on semantics and contention, not blanket virtual-thread advice. Native/foreign calls can still pin.
 
 ### @Transactional proxy bypass (cross-cutting)
@@ -172,6 +191,13 @@ public class OrderService {
 }
 ```
 The `place` call is `this.place()`, not through the proxy → no transaction. Prefer moving the transactional boundary to the externally invoked method, splitting the collaborator into another bean, or using `TransactionTemplate` for an explicit local boundary. Avoid self-injection as a default fix because it hides the design problem and can create proxy/cycle complexity.
+
+### When NOT to use
+
+- Do not demand thread-safety rewrites for code that is provably single-threaded (CLI main, `main`-only test fixtures, framework-guaranteed single-threaded callbacks) — add a confinement note instead of locks.
+- Do not add `synchronized`/`Lock` around stateless or immutable code "for safety"; needless locking shows up later as throughput loss that is hard to attribute.
+- Do not flag `SimpleDateFormat`, `HashMap`, or mutable POJOs used strictly within one thread (local variables, confined objects) — that is a style opinion, not a defect.
+- Do not apply virtual-thread advice (pooling, pinning) to code pinned on a platform-thread runtime; the caveats are runtime-specific.
 
 ### Concurrency review checklist
 

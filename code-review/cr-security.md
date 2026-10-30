@@ -14,6 +14,18 @@ Use this for security-sensitive Java changes, dependency upgrades for CVEs, auth
 
 Security bugs in Java apps often come from ordinary code paths: string-built SQL, unsafe object deserialization, logs containing secrets, unbounded file paths, SSRF through HTTP clients, and authorization checks only in the UI.
 
+### Correct — one example per risk class
+
+```java
+// Bad (Avoid) — SQL built from user input; SSRF via unchecked URL
+String sql = "SELECT * FROM orders WHERE user = '" + userId + "'";
+restClient.get().uri(userProvidedCallbackUrl).retrieve().toBuiltinObject();
+
+// Good (Preferred) — parameter binding; outbound URL validated against allowlist
+String sql = "SELECT * FROM orders WHERE user = :userId";   // or Wrapper/Query wrapper
+if (!urlAllowlist.contains(hostOf(userProvidedCallbackUrl))) throw new CallbackNotAllowedException();
+```
+
 ### Checklist
 
 #### Input and injection
@@ -46,7 +58,7 @@ Security bugs in Java apps often come from ordinary code paths: string-built SQL
 - Enforce authorization on the server side for every protected operation.
 - Do not trust client-provided user IDs, roles, prices, or ownership fields.
 
-### When NOT to overreach
+### When NOT to use — overreach
 
 - Do not rewrite an entire authentication system during an unrelated feature.
 - Do not add heavy security dependencies without checking the project's existing security stack.

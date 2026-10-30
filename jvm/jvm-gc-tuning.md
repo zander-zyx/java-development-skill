@@ -16,6 +16,17 @@ Most apps need no tuning — Java's defaults are good. Reach for GC tuning only 
 - **Collector trade-offs are workload-specific** — throughput, pause time, CPU, memory overhead, allocation rate, and heap size interact.
 - **Micro-tuning flags are a trap** — most "tuning" blog posts don't apply to your workload. The wins are in GC choice + heap sizing.
 
+### Correct — the default posture
+
+```
+# Start here on Java 17/21/25: G1, heap sized from evidence, bounded GC logs, dump on OOM
+-Xms2g -Xmx2g -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/app/
+-Xlog:gc*:file=/var/log/app/gc.log:time,uptime,level,tags:filecount=10,filesize=50M
+```
+
+Change collector or flags only after logs/metrics show the current setup misses the service's measured SLA.
+
 ### The GC options (Java 17/21/25+)
 
 | GC | Use when | Pause | Throughput | Memory overhead |
@@ -125,6 +136,12 @@ The mistake is to tune flags you read about rather than your measured bottleneck
 -XX:HeapDumpPath=/var/log/app/
 -Xlog:gc*:file=/var/log/app/gc.log:time,uptime,level,tags:filecount=10,filesize=50M
 ```
+
+### When NOT to use
+
+- Do not tune GC without a measured problem — modern default ergonomics beat most copied flag sets; "tuned" JVMs tuned from blog posts are a common source of new incidents.
+- Do not switch collectors during an active incident; capture evidence (GC logs, metrics), mitigate (scale/rollback), then tune in staging with production-like load.
+- Do not tune around a memory leak — a rising live set is an application defect (`jvm/jvm-oom-analysis.md`), not a GC configuration issue.
 
 ### Review checklist
 

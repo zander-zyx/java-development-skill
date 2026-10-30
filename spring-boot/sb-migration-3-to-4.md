@@ -32,6 +32,27 @@ Spring Boot 4 is not a routine patch upgrade. It aligns with Spring Framework 7 
 - **HTTP clients**: prefer `RestClient` for new synchronous clients; do not mass-rewrite stable `RestTemplate` usage unless migration evidence requires it.
 - **Third-party starters**: every security, persistence, tracing, cloud, and internal starter must declare Spring Boot 4 / Spring Framework 7 compatibility.
 
+### Correct — staged upgrade skeleton
+
+Land on the latest 3.5.x first, clean deprecations, then bump one line:
+
+```xml
+<!-- Bad (Avoid) — jumping versions and mixing lines in one commit -->
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.1.2</version>   <!-- with javax-era starters and Spring 6 configs still present -->
+</parent>
+
+<!-- Good (Preferred) — staged: 3.5.x green first, then the 4.x bump in its own change -->
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.1.2</version>   <!-- <relativePath/> for Maven multi-module consistency -->
+</parent>
+<!-- plus: diff mvn dependency:tree / gradlew dependencies before and after the bump -->
+```
+
 ### Evidence commands
 
 ```bash
@@ -47,7 +68,7 @@ mvn -q dependency:tree -Dverbose
 
 Also run the app's startup smoke test and at least one integration test path that touches web, data, security, and observability.
 
-### When NOT to migrate
+### When NOT to use — migration
 
 - Do not migrate directly from Spring Boot 2.x to 4.x. Move to 3.5.x first and use `spring-boot/sb-migration-2-to-3.md`.
 - Do not upgrade shared libraries/starter BOMs without checking all downstream services.

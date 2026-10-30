@@ -10,6 +10,29 @@ description: Catch-all review checklist for magic values, swallowed exceptions, 
 
 The catch-all code-review rules that don't fit a single topic but show up constantly. Run this checklist over any code that doesn't trigger the concurrency/resource/null/equals/stream rules.
 
+### Why it matters
+
+These patterns don't fail tests — they fail maintainers. A magic `3` in an `if` becomes wrong the day someone renumbers the status enum, and no compiler catches it. A swallowed exception turns a production outage into "the system silently misbehaves" with no log line to start from. Global mutable statics make tests order-dependent and flaky in CI while passing locally. Each item below has caused real incident time; that is why they are review blockers, not style taste.
+
+### Correct — one example per habit
+
+```java
+// Bad (Avoid) — magic value + swallowed failure + mutable static
+if (order.getStatus() == 3) { ... }
+try { placeOrder(req); } catch (Exception e) { /* nothing */ }
+private static Map<String, Config> CACHE = new HashMap<>();
+
+// Good (Preferred) — named intent, acted-on failure, injected state
+if (order.getStatus() == Status.PAID.getCode()) { ... }
+try {
+    placeOrder(req);
+} catch (PaymentDeclinedException e) {
+    log.warn("Payment declined for order {}", req.getOrderId(), e);
+    return OrderResult.declined(req.getOrderId());
+}
+private final Map<String, Config> cache;   // injected bean, see cr-concurrency.md
+```
+
 ### Magic values
 
 ```java
@@ -179,6 +202,13 @@ Either implement correctly or don't override. Empty overrides usually mean a mis
 public enum Counter { INSTANCE; private int n; public void inc() { n++; } }
 ```
 Enums are singletons; mutable enum state is global mutable state. Keep enums immutable.
+
+### When NOT to use
+
+- Do not block a PR for a local numeric literal that mirrors an external contract already documented inline (protocol codes, bitmask flags) — a named constant is still better, but this is not a defect.
+- Do not demand logging inside a `catch` that meaningfully recovers and returns a typed result; the domain outcome is the record.
+- Do not flag mutable statics in application-startup-only code that is confined to a single-threaded init path and provably never touched after startup — note it, don't block it.
+- Test fixtures and throwaway scripts are exempt from these review blockers; production code is not.
 
 ### Review checklist
 

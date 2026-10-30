@@ -149,6 +149,13 @@ Mockito (with mockito-inline) can mock final classes and constructors. Enable by
 - **Don't return null from a stub** unless you're testing null handling — silent NPEs.
 - **Don't** use `verifyNoMoreInteractions` after every test — it couples the test to internal calls.
 
+### When NOT to use
+
+- Do not mock types you don't own (library HTTP clients, `Clock`, ORMs) — wrap them in your own interface and mock that; see `testing/test-layering.md`.
+- Do not mock value objects, records, or collections — build real instances.
+- Do not reach for `MockedStatic`/mocking-final when a constructor parameter (`Clock`, `PaymentGateway`) removes the need — design first, mock second.
+- Integration boundaries (real DB via Testcontainers) must not be mocked away when the question is "does the SQL work".
+
 ### Review checklist
 
 - [ ] Test mocks the class under test? (Should mock its dependencies instead.)

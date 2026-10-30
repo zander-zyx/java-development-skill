@@ -10,6 +10,24 @@ description: Use AssertJ for fluent assertions; treat JaCoCo as a floor not a ta
 
 AssertJ gives you fluent, type-safe assertions with descriptive failure messages. JaCoCo measures line/branch coverage — use it as a floor, not a target.
 
+### Why it matters
+
+JUnit's `assertTrue(result.isOk())` fails with "expected true but was false" — you then rerun the test in a debugger to see what `result` actually held. AssertJ's `assertThat(result.getOrders()).extracting(Order::getStatus).containsExactly(PAID)` prints the full actual list on failure; the diagnosis is already in the CI log. Teams that chase 100% line coverage instead of behavior write tests that execute lines without asserting anything — the metric goes green while the regressions still ship.
+
+### Correct — assert the story, not the plumbing
+
+```java
+// Bad (Avoid) — weak assertions that pass on almost anything
+assertNotNull(orders);
+assertTrue(orders.size() > 0);
+
+// Good (Preferred) — exact, readable, self-diagnosing failure
+assertThat(orders)
+    .hasSize(2)
+    .extracting(Order::getStatus)
+    .containsExactly(Status.PAID, Status.SHIPPED);
+```
+
 ### AssertJ — prefer over JUnit assertions
 
 ```java
@@ -173,6 +191,12 @@ void applies10PercentDiscountForRepeatCustomer() {
     assertThat(result.discount()).isEqualByComparingTo("10.00");
 }
 ```
+
+### When NOT to use
+
+- Do not reformat a project's JUnit assertions to AssertJ in bulk — apply AssertJ to new and touched tests unless the project standardizes on it.
+- Do not impose a hard coverage gate on legacy modules in one step; ratchet the floor upward as code is touched.
+- Skip coverage measurement on pure DTO/generated code — it distorts the number without adding signal.
 
 ### Review checklist
 

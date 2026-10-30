@@ -157,6 +157,28 @@ public class MetaObjectHandlerImpl implements MetaObjectHandler {
 }
 ```
 
+### Correct — batch performance and loop-shaped N+1
+
+Per-row inserts in a loop are the MyBatis-Plus flavor of N+1: `save()` inside a `for` fires one `INSERT` (and one auto-fill + one round trip) per row. Use batch writes with an explicit batch size, and enable JDBC batch rewriting on the driver side:
+
+```java
+// Bad (Avoid) — N single INSERTs; 1000 rows = 1000 round trips
+for (Order o : orders) {
+    orderService.save(o);
+}
+
+// Good (Preferred) — batched in chunks of 500~1000
+orderService.saveBatch(orders, 500);
+```
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://db:3306/shop?rewriteBatchedStatements=true   # MySQL: collapse batch into multi-VALUES
+```
+
+For very large imports prefer a dedicated XML `<foreach>` multi-VALUES `INSERT` or the database's bulk loader over `saveBatch`. And when a list endpoint needs related rows, collect ids and query once with `in(...)`, never loop `selectById`.
+
 ### @Transactional still applies
 
 MP's `IService` methods are not transactional by default. Wrap multi-write operations:
@@ -222,6 +244,13 @@ MP entities usually do not have JPA lazy proxies, but `@Data` still includes mut
 - Performance-critical queries where you want full SQL control
 
 MP and raw MyBatis coexist cleanly — put simple CRUD on `BaseMapper`, complex queries in XML mappers.
+
+### When NOT to use
+
+- Do not introduce MyBatis-Plus into a JPA/Hibernate or jOOQ project, or add it "alongside" for convenience — that is a persistence-layer conversion in disguise.
+- Do not wrap `BaseMapper` calls in `IService`/`ServiceImpl` when the project already calls mappers directly; preserve the existing abstraction.
+- Do not use `LambdaQueryWrapper` for genuinely dynamic column sets — string-based `QueryWrapper` or XML is the honest tool there.
+- Skip the generator on greenfield domain-first designs where tables are derived from the model, not the reverse.
 
 ### Context
 

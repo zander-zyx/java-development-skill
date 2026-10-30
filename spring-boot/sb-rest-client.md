@@ -88,6 +88,41 @@ public class PriceStreamClient {
 
 Use WebClient when the consumer is itself reactive (`Mono`/`Flux`), you stream unbounded data, or you hold thousands of idle connections (Netty's non-blocking model wins there). For one-shot synchronous calls in a servlet app, RestClient is simpler.
 
+### Correct — declarative interface with @HttpExchange
+
+For typed clients with many endpoints, declare the contract as an interface and let Spring generate the implementation. Works on top of `RestClient` (sync, attach via `HttpServiceProxyFactory`) or `WebClient` (reactive, `@HttpExchange` returns `Mono`/`Flux`):
+
+```java
+public interface PaymentApi {
+
+    @PostExchange("/charge")
+    PaymentResponse charge(PaymentRequest request);
+
+    @GetExchange("/orders/{id}")
+    OrderResponse getOrder(@PathVariable String id);
+}
+
+@Configuration
+public class PaymentClientConfig {
+
+    @Bean
+    PaymentApi paymentApi(RestClient paymentRestClient) {
+        return HttpServiceProxyFactory
+                .builderFor(RestClientAdapter.create(paymentRestClient))
+                .build()
+                .createClient(PaymentApi.class);
+    }
+}
+```
+
+One interface, centralized URI/body mapping, easy to mock in tests — prefer it once a client grows past two or three endpoints.
+
+### When NOT to use
+
+- Do not introduce `RestClient` into a Spring Boot 2.x / Spring 5 project — it does not exist there; keep `RestTemplate` or `WebClient` and note the migration in `sb-migration-2-to-3.md`.
+- Do not add `@HttpExchange` interfaces for a single one-off call — a direct `RestClient` invocation is less machinery.
+- Do not migrate working `RestTemplate` code mid-feature; do it as its own change with tests, on projects that plan to reach Spring Framework 7 where `RestTemplate` is deprecated.
+
 ### Incorrect
 
 New code with RestTemplate:

@@ -10,6 +10,10 @@ description: Spring Boot 2.x→3.x has 6 key breaking changes — javax→jakart
 
 Spring Boot 3.0 (Nov 2022) was the biggest breaking release since 1.x. Migration breaks at 6 predictable points. Work through them as a checklist.
 
+### Why it matters
+
+Every item below has stopped a real upgrade for days: the `jakarta` sweep looks mechanical until a third-party jar still ships `javax.persistence` and fails only at runtime; the trailing-slash flip produced a wave of production 404s because mobile clients kept sending `/api/orders/`; teams that skipped the "2.7 first" step ended up debugging JDK 17, Jakarta, and Hibernate 6 failures simultaneously, unable to tell which layer broke. Knowing the six break points turns a multi-day mystery into a checklist.
+
 ### Version posture
 
 Do not treat this file as a release calendar. Before a real migration, verify the currently supported Spring Boot lines in the official Spring Boot documentation. The stable migration path remains conservative:
@@ -131,6 +135,41 @@ Spring Cloud **Sleuth is deprecated** (SB2 only). SB3 ships **Micrometer Tracing
 
 Note: **default trace formats differ** between Sleuth and Micrometer Tracing — propagation headers changed, so a rolling migration can lose traces at the boundary. Cut over a service fully, don't half-migrate.
 
+### Correct — Spring Security: adapter removal + Lambda DSL
+
+Spring Security 6 (bundled with SB 3.x) **removed `WebSecurityConfigurerAdapter`**. `extends WebSecurityConfigurerAdapter` + `@Override configure(...)` no longer compiles. Declare a `SecurityFilterChain` bean with the Lambda DSL:
+
+```java
+// Bad (Avoid) — 2.x style, does not compile on Spring Security 6
+@Configuration
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()                       // also deprecated (non-lambda form)
+            .antMatchers("/api/admin/**").hasRole("ADMIN")
+            .anyRequest().authenticated();
+    }
+}
+
+// Good (Preferred) — SB 3.x: SecurityFilterChain bean + Lambda DSL
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated())
+            .httpBasic(Customizer.withDefaults());
+        return http.build();
+    }
+}
+```
+
+Also in the Security 6 sweep: `authorizeRequests()` → `authorizeHttpRequests()`, `antMatchers` → `requestMatchers` (with `PathPatternParser` as the default), and actuator endpoint authorization moves to the same lambda style.
+
 ### Also: `spring.factories` → AutoConfiguration.imports
 
 If you wrote a custom starter, auto-config registration moved:
@@ -139,6 +178,13 @@ If you wrote a custom starter, auto-config registration moved:
 - **3.x**: `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` (one FQCN per line)
 
 The old mechanism still works in 3.x but is deprecated and on a removal track.
+
+### When NOT to use
+
+- Do not migrate an app that must stay on Java 8/11 for its runtime (app-server contract, certified environment) — SB 3 requires Java 17+; plan the JDK move first.
+- Do not run this migration inside a feature branch with unrelated business changes; isolate it.
+- Do not migrate straight from 2.3/2.4 to 3.x — land on the latest 2.7.x first, or every regression lands at once.
+- If the app is in maintenance-only mode with no planned dependency work, staying on patched 2.7.x may be the safer business decision — state the tradeoff instead of pushing the migration.
 
 ### Recommended migration order
 

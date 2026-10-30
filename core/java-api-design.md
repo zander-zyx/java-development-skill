@@ -12,7 +12,7 @@ Use this when changing public/protected classes, interfaces, method signatures, 
 
 ### Why it matters
 
-Java APIs are contracts. A change that compiles locally can still break downstream callers, reflection, serialization, frameworks, generated code, or binary-compatible consumers that do not recompile immediately.
+Java APIs are contracts. A change that compiles locally can still break downstream callers, reflection, serialization, frameworks, generated code, or binary-compatible consumers that do not recompile immediately. Classic production failures: renaming a JSON DTO field "breaks nothing" in Java but every JavaScript client now reads `undefined`; adding an overload makes an existing Kotlin/Scala call site ambiguous; changing a method's thrown checked exceptions breaks consumers at runtime, not compile time, because they compiled against the old jar months ago.
 
 ### First classify the API
 
@@ -43,6 +43,26 @@ public record OrderResponse(
         String status,
         BigDecimal amount
 ) {}
+```
+
+### Rules — Bad vs. Good
+
+```java
+// Bad (Avoid) — silently changes behavior under the same signature
+// (null now means "skip validation"; every existing caller is affected)
+void submit(Order order);   // was: order must be fully validated
+
+// Good (Preferred) — additive, discoverable, old behavior untouched
+void submit(Order order);
+default void submitUnchecked(Order order) { /* documented fast path */ }
+```
+
+```java
+// Bad (Avoid) — exposes internal mutable state to every consumer
+public List<Rule> getRules() { return this.rules; }
+
+// Good (Preferred) — defensive copy (or List.copyOf on Java 10+)
+public List<Rule> getRules() { return List.copyOf(this.rules); }
 ```
 
 ### Rules

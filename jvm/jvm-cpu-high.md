@@ -16,6 +16,18 @@ When CPU is saturated or the container is throttled, first determine whether loa
 - **Averages hide culprits** — a single spinning thread can peg one core while the app looks "only 12% CPU" on a 8-core box. Per-thread breakdown matters.
 - **The fix is specific** — a generic "tune the JVM" never helps. You need the stack of the spinning thread.
 
+### Correct — the fast path
+
+```bash
+# Classic JDK toolkit: per-thread CPU → hex nid → matching jstack frame → profiler
+top -H -p <pid>                     # note hottest TID
+printf "%x\n" <tid>                 # → nid
+jstack <pid> | grep -A 20 "nid=0x$(printf "%x" <tid>)"
+
+# Or with Arthas attached: top hot threads with stacks in one command
+thread -n 3
+```
+
 ### Step 1: Confirm it's the Java process
 
 ```bash
@@ -86,7 +98,22 @@ Alternatives:
   jcmd <pid> JFR.start duration=60s filename=/tmp/recording.jfr
   # then open recording.jfr in JDK Mission Control
   ```
-- **Arthas (Alibaba)** — popular in China; `profiler start` / `profiler stop --format html`.
+- **Arthas (Alibaba)** — no-code-change diagnosis on a live JVM; the modern production first-responder toolkit:
+  ```bash
+  # attach to the target JVM
+  java -jar arthas-boot.jar
+
+  # top 3 CPU-consuming threads, sampled over an interval — no top -H / hex conversion needed
+  thread -n 3
+
+  # live dashboard: threads, memory, GC count, CPU per thread, refreshed per interval
+  dashboard
+
+  # profile and export a flame graph
+  profiler start
+  profiler stop --format html
+  ```
+  `thread -n 3` prints the top stacks directly (equivalent to `top -H` + hex `nid` lookup + `jstack` grep in one command). Note the step numbering below assumes JDK built-in tooling; with Arthas, Steps 2–3 collapse into `thread -n 3` and `dashboard`.
 
 ### Step 5: Common causes of high CPU
 
@@ -121,6 +148,13 @@ After fixing:
 - CPU returns to baseline at the same traffic level.
 - p99 latency drops (a hot CPU core was delaying everything sharing it).
 - No regression under load test.
+
+### When NOT to use
+
+- Do not attach profilers (async-profiler, Arthas) without the operator's go-ahead on a production JVM — instrumentation changes the process; follow the incident runbook.
+- Do not profile inside a container that lacks `SYS_PTRACE`/kernel perf permissions; use JFR or Arthas bytecode-instrumented modes instead, or the data will silently mislead.
+- Do not jump to "tune GC" when a single spinning thread is the cause — check per-thread CPU first (Step 2).
+- Short traffic-driven CPU spikes during deploys/warmup are expected; investigate sustained elevation, not blips.
 
 ### Review checklist
 

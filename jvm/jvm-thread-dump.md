@@ -128,7 +128,29 @@ Fix: investigate slow queries / unclosed connections, or tune pool size.
 - **fastthread.io** — external hosted analyzer; upload only when policy allows and the dump has been reviewed for class names, tenant data, URLs, and internal topology.
 - **JDK Mission Control (jcmd + JFR)** — records over time, not snapshots.
 - **VisualVM** — live thread view + on-demand dumps.
-- **Arthas (Alibaba)** — popular in China for live diagnosis, includes `thread` command for dumps and deadlock detection.
+- **Arthas (Alibaba)** — live diagnosis without dump-file juggling:
+  ```bash
+  java -jar arthas-boot.jar
+  thread                     # all threads with state/CPU, live view
+  thread -b                  # find the thread blocking others (deadlock/blocking-lock locator)
+  thread --state BLOCKED     # filter to BLOCKED threads only
+  thread <tid>               # one thread's stack
+  dashboard                  # threads + memory + GC overview in one screen
+  ```
+
+### Correct — the fast path
+
+```bash
+jcmd <pid> Thread.print > t1.txt; sleep 10; jcmd <pid> Thread.print > t2.txt
+diff <(grep -A5 '^"' t1.txt) <(grep -A5 '^"' t2.txt)   # what changed between snapshots
+grep -B2 -A8 "Found one Java-level deadlock" t1.txt     # JVM's automatic deadlock report
+```
+
+### When NOT to use
+
+- Do not upload dumps to hosted analyzers without reviewing them for internal class names, URLs, and tenant data first.
+- A single dump cannot distinguish "stuck" from "busy" — never conclude from one snapshot.
+- Traditional `jstack` output under-represents virtual threads (Java 21+); use `jcmd Thread.dump_to_file` for those (see Context).
 
 ### Review checklist
 

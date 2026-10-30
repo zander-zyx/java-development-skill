@@ -156,6 +156,13 @@ public record OrderRequest(@NonNull String userId, @NonNull BigDecimal amount) {
 
 Now no `OrderRequest` instance can exist with null fields — the bug is impossible at the type level.
 
+### When NOT to use
+
+- Do not wrap every signature in `Optional` — `Optional` fields, parameters, and collection elements make serialization and reflection frameworks harder, not safer.
+- Do not flag intentional null returns documented as part of a legacy contract; changing them is an API break that needs its own migration.
+- Performance-critical hot paths and primitive-stream pipelines may reasonably avoid `Optional` allocation; a nullable contract with an annotation is acceptable there.
+- Do not mark internal private helpers that are provably never called with null — the review target is the public boundary.
+
 ### Review checklist
 
 - [ ] Method's nullable return is undocumented or inconsistent with sibling APIs?

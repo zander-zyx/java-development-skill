@@ -16,7 +16,7 @@ GC logs are primary evidence for memory behavior: how often the JVM pauses, how 
 - **Trends reveal leaks** — old-gen occupancy climbing over hours/days is the early warning of an OOM.
 - **Cause codes** tell you why the GC ran — `Allocation Failure`, `System.gc()`, `Metadata GC Threshold`, etc.
 
-### Enable GC logging (Java 9+ — unified logging)
+### Correct — enable bounded unified logging (Java 9+)
 
 ```
 -Xlog:gc*:file=/var/log/app/gc.log:time,uptime,level,tags:filecount=10,filesize=50M
@@ -125,6 +125,13 @@ The rising "after GC" number is the leak signal — long before OOM.
 -XX:HeapDumpPath=/var/log/app/
 -Xlog:gc*:file=/var/log/app/gc.log:time,uptime,level,tags:filecount=10,filesize=50M
 ```
+
+### When NOT to use
+
+- Do not upload GC logs to hosted analyzers (gceasy.io) when the log may contain hostnames, paths, or tenant identifiers — check policy first; GCViewer and manual grep are safe defaults.
+- Do not enable `gc*` verbose logging without rotation (`filecount`/`filesize`) on a disk-constrained container.
+- Do not use Java 8 flags (`-XX:+PrintGCDetails`) on Java 9+ runtimes — they are ignored; use `-Xlog:gc*`.
+- GC logs answer "when/why did we pause"; they cannot attribute non-GC latency (locks, throttling, downstreams) — route those to `jvm/jvm-thread-dump.md` or `jvm/jvm-cpu-high.md`.
 
 ### Review checklist
 

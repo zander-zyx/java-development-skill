@@ -151,6 +151,12 @@ void placesOrderThroughRepository() {
 }
 ```
 
+### When NOT to use
+
+- Do not add Lombok (`@RequiredArgsConstructor`) to a project that doesn't use it — write the explicit constructor; introduce Lombok only as its own approved change.
+- Do not convert field injection to constructor injection across a whole module mid-feature; do it incrementally on classes you already touch.
+- Do not inject `ApplicationContext` or look up beans programmatically when a plain constructor parameter works — service-locator style hides dependencies and hurts testability.
+
 ### Context
 
 - **Single constructor + Spring 4.3+**: Spring auto-injects when there is exactly one constructor, even without `@Autowired`. `@RequiredArgsConstructor` produces exactly one, so this just works.

@@ -16,6 +16,18 @@ In-memory databases (H2) and mocks hide bugs — different SQL dialects, missing
 - **Real behavior** — Redis pipelining, Kafka ordering, PostgreSQL advisory locks all behave as prod.
 - **Reproducibility** — the container image is pinned; tests run identically on every developer's machine and CI.
 
+### Correct — pinned image + @ServiceConnection, reused container
+
+```java
+// Bad (Avoid) — latest tag + unpinned container per test class
+static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:latest");   // tests change when Docker Hub changes
+
+// Good (Preferred) — pinned digest/tag, static (one container per class), auto-wired
+@Container
+@ServiceConnection
+static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.4");
+```
+
 ### Setup (Spring Boot 3.1+ — use @ServiceConnection)
 
 ```xml
@@ -161,6 +173,12 @@ class OrderIntegrationTest { ... }
 ```
 
 The test runs in a transaction that Spring rolls back, so the DB is clean for the next test. Note: this hides transaction-boundary bugs (commit semantics differ), so for testing actual `@Transactional` behavior, don't roll back — instead use `@DirtiesContext` or a fresh container.
+
+### When NOT to use
+
+- No Docker in the environment (locked-down CI runners, air-gapped builds) — use embedded alternatives or H2 with documented caveats rather than failing the build.
+- Pure logic tests never need containers; adding them there is suite slowdown, not rigor.
+- Do not introduce Testcontainers into a project that doesn't use it just because this rule exists — it is opt-in per the skill's stack-neutrality default.
 
 ### Review checklist
 

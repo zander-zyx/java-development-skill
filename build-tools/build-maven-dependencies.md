@@ -58,6 +58,27 @@ Prefer `release` over separate `source`/`target` when the project can use it:
 
 For Spring Boot apps, prefer the Spring Boot parent unless the project already uses a corporate parent. With a corporate parent, import `spring-boot-dependencies` in `<dependencyManagement>` instead of inventing unmanaged starter versions.
 
+### Rules — Bad vs. Good version management
+
+```xml
+<!-- Bad (Avoid) — inline version fights the BOM; three modules drift apart -->
+<dependency>
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>33.0.0-jre</version>
+</dependency>
+
+<!-- Good (Preferred) — property-driven, declared once, BOM-aligned -->
+<properties>
+    <guava.version>33.0.0-jre</guava.version>
+</properties>
+<dependency>
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>${guava.version}</version>
+</dependency>
+```
+
 ### Rules
 
 - Do not set versions for dependencies managed by the active BOM unless there is a documented override reason.

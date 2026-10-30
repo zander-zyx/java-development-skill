@@ -27,6 +27,14 @@ Add to JVM args so the dump is written automatically on the first OOM:
 
 `%p` includes the PID. Without this, when OOM hits you have no dump and must reproduce — possibly for days.
 
+### Correct — capture posture
+
+```
+-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/app/oom-%p.hprof
+```
+
+Plus one manual capture command ready to run when the process is degraded (see Step 2), and disk space reserved for a dump the size of the live heap.
+
 ### Step 2: Capture a dump manually (live process)
 
 If the app is degraded but not yet crashed, dump it:
@@ -40,6 +48,13 @@ jcmd <pid> GC.heap_dump /tmp/heap.hprof
 
 # JDK 9+ — also via jhsdb
 jhsdb jmap --binaryheap --pid <pid> --file heap.hprof
+```
+
+With Arthas attached, `dashboard` gives the live memory/GC overview and one command writes the dump:
+
+```bash
+dashboard                 # heap vs nonheap usage, GC counts — quick leak confirmation
+heapdump /tmp/heap.hprof  # live-process dump (same pause caveat as jmap)
 ```
 
 **Caveat**: a full heap dump pauses the JVM (can be seconds to minutes for multi-GB heaps). On a prod server, expect a brief stall.
@@ -126,6 +141,12 @@ After fixing, monitor:
 - Heap usage over time should plateau, not grow unboundedly.
 - GC frequency should stabilize.
 - Run a long soak test (12-24h) with prod-like load — if the leak is fixed, heap returns to baseline after GC; if not, it climbs.
+
+### When NOT to use
+
+- Do not dump a healthy prod JVM "to check" — a multi-GB dump stalls the app and fills the disk; dump on evidence (degradation, OOM, climbing heap trend).
+- Do not raise `-Xmx` reflexively on a true leak — it only delays the crash and makes the eventual dump enormous.
+- Do not ship `.hprof` files around casually — they contain live secrets and PII (see Context).
 
 ### Review checklist
 

@@ -106,6 +106,12 @@ public OrderResponse getOrder(@PathVariable Long id) {
 }
 ```
 
+### When NOT to use
+
+- Do not restructure packages during a feature change — layout moves destroy `git blame` and review diffs; do them as an isolated, mechanical, build-green commit.
+- Do not impose package-by-feature on a small single-feature app or a codebase already standardized on package-by-layer with tooling that depends on it.
+- Existing repository conventions win: if the project has an established structure, follow it and note the tradeoff instead of reorganizing.
+
 ### Context
 
 - **Small apps** — if the whole app is one feature, package-by-layer is tolerable. The rule of thumb: as soon as you have two features, switch to package-by-feature.

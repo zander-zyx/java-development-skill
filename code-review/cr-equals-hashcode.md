@@ -149,6 +149,13 @@ return this.id == other.id;
 return Objects.equals(this.id, other.id);          // or this.id.equals(other.id) with null guard
 ```
 
+### When NOT to use
+
+- Do not demand `equals`/`hashCode` overrides on classes never used as map keys or set members — identity semantics are fine there and less code is better.
+- Do not flag entities that deliberately use identifier equality (JPA) or business-key equality; the choice just has to be deliberate and documented (see "Persistence entities" above).
+- Do not force `record` migration on classes needing mutable fields or framework proxies.
+- Skip the review item entirely for enums — identity equality is already correct.
+
 ### Review checklist
 
 - [ ] Class with mutable fields that participates in `equals`/`hashCode`?

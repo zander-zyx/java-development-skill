@@ -17,6 +17,22 @@ The four most common JPA disasters — N+1 queries, `LazyInitializationException
 - **Silent no-op transactions**: a missing or mis-scoped `@Transactional` means writes don't persist (or worse, run in autocommit, half-persisting).
 - **Broken equality**: Lombok `@Data` on an entity generates `equals` based on all fields — for a lazy proxy this triggers DB hits and for new entities (null id) two distinct instances compare equal, breaking `Set` semantics.
 
+### Correct — the four fixes at a glance
+
+```java
+// Bad (Avoid) — iterate + touch lazy collections, no transaction boundary
+List<Order> orders = orderRepository.findAll();
+for (Order o : orders) {
+    total += o.getItems().size();          // N+1 SELECTs
+}
+
+// Good (Preferred) — plan the fetch, keep the transaction at the service edge
+@Transactional(readOnly = true)
+public List<OrderSummary> listOrders(Pageable pageable) {
+    return orderRepository.findSummariesWithItems(pageable);   // JOIN FETCH / EntityGraph / split query
+}
+```
+
 ### Disable Open Session in View
 
 `spring.jpa.open-in-view` defaults to `true` but should be `false`. With it on, the Hibernate session stays open for the entire HTTP request, silently masking lazy-loading problems in dev that explode as `LazyInitializationException` once you optimize.
@@ -169,6 +185,13 @@ public class Order {
 ```
 
 Watch the **column DDL**: UUID often changed from `binary(16)` to `varchar(36)` across versions, which can break existing schemas. Validate with `ddl-auto=validate` on staging first.
+
+### When NOT to use
+
+- Do not apply JPA rules (JOIN FETCH, EntityGraph, `open-in-view`) to a MyBatis/MyBatis-Plus project — use `spring-boot/sb-mybatis-plus.md` instead.
+- Do not add `@Transactional` around single-find read paths when no consistency window is needed; it adds session overhead for nothing.
+- Do not wrap every service method "to be safe" — oversized transactions hold locks longer and multiply deadlock risk. Keep the boundary at the business consistency unit.
+- Do not switch entity equality to id-based equality mid-feature; `Set`/`Map` behavior changes silently.
 
 ### Context
 

@@ -137,6 +137,12 @@ public class Leaky implements AutoCloseable {
 
 Finalization is deprecated for removal and can be disabled on modern JDKs. Never depend on it for correctness; use try-with-resources or an explicit lifecycle instead.
 
+### When NOT to use
+
+- Do not flag objects that are provably closed by an enclosing framework contract (Spring-managed `SqlSession`, JPA `EntityManager`, injected pools) — only code that itself opens the resource owns closing it.
+- Do not demand try-with-resources for JVM-managed or process-lifetime singletons (global stdout, the runtime shutdown log handler).
+- `finalize`/`Cleaner` review applies to heap resources; native handles wrapped by a library with its own lifecycle are the library's contract, not the caller's defect.
+
 ### Review checklist
 
 When reviewing Java code, flag:
