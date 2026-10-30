@@ -34,6 +34,8 @@
 
 默认安装到 `~/.agents/skills/java-development`。Codex、Cursor、Gemini CLI、OpenCode 和 GitHub Copilot 都能发现这个共享位置；同时还会安装到当前机器上已存在配置目录的其他工具。
 
+复制安装（`--copy`）基于白名单：只安装 `SKILL.md`、`metadata.json`、`agents/`、`assets/` 和六个规则目录——`README*`、`scripts/`、`examples/`、图片等仓库文件绝不会进入你的 skill 目录。
+
 | 工具 | 额外原生目录 |
 |---|---|
 | Claude Code | `~/.claude/skills` |

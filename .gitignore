@@ -26,6 +26,7 @@ tmp/
 __pycache__/
 *.pyc
 .video_agent/
+.v2c/
 .agents/
 
 # ===== 凭据/本地配置（绝不提交）=====

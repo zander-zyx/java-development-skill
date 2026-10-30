@@ -54,6 +54,8 @@ The skill uses the portable [Agent Skills specification](https://agentskills.io/
 
 The default installs to `~/.agents/skills/java-development`, a shared location discovered by Codex, Cursor, Gemini CLI, OpenCode, and GitHub Copilot, plus native directories for tools already installed on the machine.
 
+Copy installs (`--copy`) are whitelist-based: only `SKILL.md`, `metadata.json`, `agents/`, `assets/`, and the six rule directories are installed — repository files like `README*`, `scripts/`, `examples/`, and images never land in your skill directory.
+
 | Tool | Additional native directory |
 |---|---|
 | Claude Code | `~/.claude/skills` |

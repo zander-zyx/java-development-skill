@@ -5,11 +5,16 @@
 # Detects installed AI coding tools and installs the skill into their discovery
 # directories. The shared .agents/skills location is always included.
 #
+# Copy installs use a strict whitelist (SKILL.md, metadata.json, agents/,
+# assets/, core/, build-tools/, spring-boot/, code-review/, testing/, jvm/) so
+# repository-management files (.git, .github, scripts/, examples/, README*,
+# CONTRIBUTING.md, CODE_OF_CONDUCT.md, *.png) never reach user skill dirs.
+#
 # Usage:
 #   ./install.sh                       # shared location + detected tools
 #   ./install.sh --force               # overwrite existing installs
 #   ./install.sh --all                 # install to every supported tool directory
-#   ./install.sh --copy                # copy instead of creating symlinks
+#   ./install.sh --copy                # whitelist copy instead of symlinks
 #   ./install.sh --target <skills-dir> # install to a custom skills directory
 #   ./install.sh --uninstall           # remove from all detected tools
 #
@@ -20,6 +25,37 @@ set -euo pipefail
 SKILL_NAME="java-development"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 SKILL_SRC="${SCRIPT_DIR}"          # the repo root IS the skill folder
+
+# Whitelist of runtime assets installed into user skill directories.
+# Repo-management files (.git, .github, scripts, examples, README*, CONTRIBUTING,
+# CODE_OF_CONDUCT, LICENSE, *.png) are deliberately excluded so installed skill
+# directories stay minimal and context-clean.
+SKILL_ENTRIES=(
+  "SKILL.md"
+  "metadata.json"
+  "agents"
+  "assets"
+  "core"
+  "build-tools"
+  "spring-boot"
+  "code-review"
+  "testing"
+  "jvm"
+)
+
+check_skill_source() {
+  local missing=0
+  for entry in "${SKILL_ENTRIES[@]}"; do
+    if [ ! -e "$SKILL_SRC/$entry" ]; then
+      echo "Missing required skill entry: $SKILL_SRC/$entry" >&2
+      missing=1
+    fi
+  done
+  if [ "$missing" -eq 1 ]; then
+    echo "Refusing to install an incomplete skill source." >&2
+    exit 1
+  fi
+}
 
 FORCE=0
 INSTALL_ALL=0
@@ -61,6 +97,10 @@ done
 if [ -n "$CUSTOM_TARGET" ] && [ "$INSTALL_ALL" -eq 1 ]; then
   echo "--target and --all cannot be used together"
   exit 1
+fi
+
+if [ "$UNINSTALL" -eq 0 ]; then
+  check_skill_source
 fi
 
 # --- target directories per tool (in $HOME) ----------------------------------
@@ -134,22 +174,17 @@ for dir in "${TARGETS[@]}"; do
   if [ "$COPY_ONLY" -eq 0 ] && ln -s "$SKILL_SRC" "$target" 2>/dev/null; then
     echo "✓ $tool: linked → $target"
   else
-    declare -a copy_excludes=(--exclude=.git --exclude=.video_agent --exclude=__pycache__ --exclude='*.pyc')
-    case "$resolved_target" in
-      "$SKILL_SRC"/*)
-        relative_target="${resolved_target#"$SKILL_SRC"/}"
-        copy_excludes+=(--exclude="$relative_target" --exclude="./$relative_target")
-        ;;
-    esac
+    # Strict whitelist copy: only SKILL_ENTRIES are installed. Repository
+    # management files never reach the user's skill directory.
     mkdir -p "$target"
     (
       cd "$SKILL_SRC"
-      tar "${copy_excludes[@]}" -cf - .
+      tar -cf - "${SKILL_ENTRIES[@]}"
     ) | (
       cd "$target"
       tar -xf -
     )
-    echo "✓ $tool: copied → $target"
+    echo "✓ $tool: copied → $target (whitelist install)"
   fi
 done
 
