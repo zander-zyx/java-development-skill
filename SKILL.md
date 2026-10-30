@@ -1,16 +1,50 @@
 ---
 name: java-development
-description: "Use when working on any Java or JVM project: plain Java, libraries, CLI tools, Android Java, Maven/Gradle builds, Spring Boot, Jakarta EE, Quarkus, Micronaut, MyBatis/MyBatis-Plus, JPA/Hibernate, Lombok, Java tests, code review, API design, exception handling, security review, refactoring, dependencies, Java upgrades, javax/jakarta migrations, or JVM troubleshooting such as GC, OOM, thread dumps, deadlocks, high CPU, and performance issues."
+description: "Use when writing, refactoring, or reviewing any Java or JVM code: plain Java, libraries, CLI tools, Android Java, Maven/Gradle dependency and build governance (pom.xml, BOMs, version catalogs, toolchains), Spring Boot development and version migration (2.x to 3.x, 3.x to 4.x, javax to jakarta), MyBatis/MyBatis-Plus or JPA/Hibernate persistence, writing tests with JUnit 5, Mockito, AssertJ, and Testcontainers, API design, exception handling, security review, Java upgrades, and JVM troubleshooting such as OOM, high CPU, GC tuning, GC logs, thread dumps, deadlocks, and memory leaks. Also covers Jakarta EE, Quarkus, Micronaut, and Lombok. Not for non-JVM languages or general questions unrelated to Java code."
 ---
 
 # Java Development Agent
 
 Router skill for general Java/JVM work. Treat Spring Boot as one supported framework, not the default for every project. Load only the matching rule files below.
 
+## Routing Protocol
+
+Run these three steps in order before generating or modifying code.
+
+### Step 1 — Stack Detection
+
+Inspect the project's build descriptor(s) first and record what they prove:
+
+- `pom.xml` vs `build.gradle(.kts)` → Maven or Gradle; preserve whichever exists.
+- Java version → `maven.compiler.release` / `<java.version>` / Gradle toolchain or `sourceCompatibility`.
+- Spring Boot line → parent or BOM version: 2.x, 3.x, or 4.x (drives jakarta namespace, security DSL, Actuator/Micrometer config).
+- Persistence → JPA/Hibernate vs MyBatis/MyBatis-Plus vs JDBC/jOOQ (dependencies plus repository/mapper layout).
+- Lombok → present and annotation processing configured, or absent.
+- Logging facade → SLF4J, Log4j2, or JUL in actual use.
+- Test stack → JUnit 4 vs 5, Mockito, Testcontainers, Spring Boot test slices.
+
+Existing evidence beats this skill's defaults. If a descriptor answers a question, do not assume otherwise.
+
+### Step 2 — Lazy Routing (Progressive Disclosure)
+
+Classify the task, then read **only the 1–3 highest-matching rule files** from the route table. Never load every rule file for one task — it inflates the context window without improving the answer.
+
+- Unknown/general Java task: load `core/java-general-development.md` only if classification or the default choice is unclear.
+- API/exception/version work: load the specific `core/...` rule before framework rules.
+- Build edits: load exactly one `build-tools/...` rule matching the detected build tool.
+- Spring Boot edits: load the primary `spring-boot/...` rule only when the project actually uses Spring Boot.
+- Broad code review: start with `code-review/cr-anti-patterns.md`, then add specific risk files.
+- Test work: load `testing/test-layering.md` first, then the framework-specific test file.
+- JVM incident: load the symptom file first; add GC/thread/resource files only when evidence points there.
+- Do not load README files or `examples/` unless the user asks for usage docs.
+
+### Step 3 — Convention Priority
+
+The target project's existing code style, architecture, and module conventions outrank this skill's rules. When they conflict, follow the project and say so explicitly.
+
 ## Defaults
 
 - Respond in the user's language; keep code unchanged unless editing.
-- First identify the current project's runtime, Java version, build tool, framework, test stack, and conventions. Existing evidence beats this skill's defaults.
 - Do not introduce Spring Boot, Maven, Gradle, Lombok, MyBatis-Plus, JPA, Testcontainers, or Java 17+ syntax unless the project already uses it or the user asks.
 - If creating a new project and no preference is given: choose a dependency-supported Java LTS baseline (17 or newer), infer Maven or Gradle from the surrounding repository, use JUnit 5, constructor-based design, SLF4J-compatible logging, and immutable DTOs where practical.
 - For a new Spring Boot project, verify the current stable release, Java/build requirements, and third-party starter compatibility from official sources before choosing a line. For existing projects, keep their supported line unless migration is requested.
@@ -18,19 +52,6 @@ Router skill for general Java/JVM work. Treat Spring Boot as one supported frame
 - Prefer constructor injection in DI frameworks. Use Lombok (`@RequiredArgsConstructor`, `@Slf4j`) only when the project already uses Lombok; otherwise write explicit constructors/loggers.
 - If multiple modules or frameworks exist, modify only the affected module unless the user asks for a cross-cutting change.
 - Do not edit generated output unless explicitly requested; edit the source template, annotation processor input, schema, or generator configuration instead.
-
-## Loading Rules
-
-Start with the smallest useful set:
-
-- Any Java task: load `core/java-general-development.md` only if project classification or default choice is unclear.
-- API/exception/version work: load the specific `core/...` rule before framework rules.
-- Build edits: load exactly one build rule (`build-tools/...`) matching the detected build tool.
-- Spring Boot edits: load the primary `spring-boot/...` rule only when the project actually uses Spring Boot.
-- Broad code review: start with `code-review/cr-anti-patterns.md`, then add specific risk files.
-- Test work: load `testing/test-layering.md` first, then the framework-specific test file.
-- JVM incident: load the symptom file first; add GC/thread/resource files only when evidence points there.
-- Do not load README files or `examples/` unless the user asks for usage docs.
 
 ## Work Rules
 

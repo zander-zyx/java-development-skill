@@ -1,8 +1,17 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "organization": "personal",
   "date": "October 2026",
   "abstract": "Framework-neutral Java/JVM development agent skill covering plain Java, libraries, CLI tools, API design, exception handling, Java version modernization, Maven and Gradle build hygiene, optional Spring Boot development and migrations, Java code/security review, testing with JUnit/Mockito/Testcontainers, and JVM troubleshooting. Defaults are project-aware: preserve existing stack, build tool, Java version, logging, persistence, and Lombok usage unless the user asks to change them.",
+  "ruleCounts": {
+    "total": 34,
+    "core": 4,
+    "build-tools": 2,
+    "spring-boot": 10,
+    "code-review": 7,
+    "testing": 6,
+    "jvm": 5
+  },
   "codeStyle": {
     "projectStack": "preserve existing project conventions first",
     "di": "constructor injection in DI frameworks; use @RequiredArgsConstructor only when Lombok is already present",

@@ -13,6 +13,15 @@ RULE_DIRS = ["core", "build-tools", "spring-boot", "code-review", "testing", "jv
 REQUIRED_SKILL_KEYS = {"name", "description"}
 REQUIRED_RULE_KEYS = {"title", "impact", "impactDescription", "tags", "description"}
 VALID_IMPACTS = {"HIGH", "MEDIUM", "LOW"}
+# Required Markdown sections; headings may continue after the standard prefix
+# (e.g. "### Correct — layered config"), but the prefix itself is mandatory.
+REQUIRED_SECTIONS = {
+    "### Why it matters": r"^### Why it matters\b",
+    "### Correct": r"^### Correct\b",
+    "### When NOT to use": r"^### When NOT to use\b",
+    "### Context": r"^### Context\b",
+}
+ASSET_REF_SUFFIXES = (".md", ".xml", ".java", ".template", ".json", ".yaml", ".yml")
 DOC_FILES = ["README.md", "README_zh.md"]
 TEXT_SUFFIXES = {".java", ".json", ".md", ".py", ".sh", ".template", ".xml", ".yaml", ".yml"}
 FORBIDDEN_DOC_PATTERNS = {
@@ -136,7 +145,10 @@ def check_skill(errors: list[str]) -> None:
     if len(description) > 1024:
         fail(errors, f"SKILL.md: description is too long ({len(description)} chars; maximum is 1024)")
 
-    refs = sorted(set(re.findall(r"`([^`]+\.md)`", text)))
+    # Only directory-qualified refs (e.g. `core/java-general-development.md`,
+    # `assets/pom-spring-boot-3.xml`) are skill-relative paths; bare filenames
+    # like `pom.xml` or `application.yml` describe the *target project's* files.
+    refs = sorted(set(re.findall(r"`([^`]+/\S+\.(?:" + "|".join(s.lstrip(".") for s in ASSET_REF_SUFFIXES) + r"))`", text)))
     for ref in refs:
         ref_path = (ROOT / ref).resolve()
         try:
@@ -181,6 +193,10 @@ def check_rules(errors: list[str]) -> dict[str, int]:
                 fail(errors, f"{rel}: duplicate rule title {title!r}; already used by {titles[title].relative_to(ROOT)}")
             elif title:
                 titles[title] = path
+            text = read(path)
+            for section, pattern in REQUIRED_SECTIONS.items():
+                if not re.search(pattern, text, flags=re.MULTILINE):
+                    fail(errors, f"{rel}: missing required section '{section}'")
             check_markdown_fences(path, errors)
     return counts
 
@@ -232,12 +248,29 @@ def check_docs(counts: dict[str, int], errors: list[str]) -> None:
         check_markdown_fences(path, errors)
 
 
-def check_machine_files(errors: list[str]) -> None:
+def check_machine_files(counts: dict[str, int], errors: list[str]) -> None:
     try:
         metadata = json.loads(read(ROOT / "metadata.json"))
     except Exception as exc:  # noqa: BLE001
         fail(errors, f"metadata.json: invalid JSON: {exc}")
         metadata = {}
+
+    expected_counts = {
+        "total": sum(counts.values()),
+        **{dirname: counts.get(dirname, 0) for dirname in RULE_DIRS},
+    }
+    rule_counts = metadata.get("ruleCounts", {}) if isinstance(metadata, dict) else {}
+    if not isinstance(rule_counts, dict):
+        fail(errors, "metadata.json: ruleCounts must be an object of directory -> count")
+    else:
+        if set(rule_counts) != set(expected_counts):
+            fail(
+                errors,
+                f"metadata.json: ruleCounts keys {sorted(rule_counts)} do not match expected {sorted(expected_counts)}",
+            )
+        for key, value in expected_counts.items():
+            if rule_counts.get(key) != value:
+                fail(errors, f"metadata.json: ruleCounts.{key} is {rule_counts.get(key)!r}; expected {value}")
 
     version = str(metadata.get("version", ""))
     if not re.fullmatch(r"\d+\.\d+\.\d+", version):
@@ -363,7 +396,7 @@ def main() -> int:
     check_skill(errors)
     counts = check_rules(errors)
     check_docs(counts, errors)
-    check_machine_files(errors)
+    check_machine_files(counts, errors)
     check_assets(errors)
 
     if errors:

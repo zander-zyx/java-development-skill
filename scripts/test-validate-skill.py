@@ -196,6 +196,48 @@ class ValidatorTests(unittest.TestCase):
         path.write_text(text + "\n".join(f"extra line {line}" for line in range(450)) + "\n", encoding="utf-8")
         self.assert_rejected("500 lines or fewer")
 
+    def test_missing_required_section_is_rejected(self) -> None:
+        path = self.skill / "core" / "java-api-design.md"
+        path.write_text(
+            path.read_text(encoding="utf-8").replace("### Why it matters", "### Motivation", 1),
+            encoding="utf-8",
+        )
+        self.assert_rejected("missing required section '### Why it matters'")
+
+    def test_stale_metadata_rule_count_is_rejected(self) -> None:
+        path = self.skill / "metadata.json"
+        text = path.read_text(encoding="utf-8")
+        text = text.replace('"total": 34', '"total": 33', 1)
+        path.write_text(text, encoding="utf-8")
+        self.assert_rejected("metadata.json: ruleCounts.total is 33; expected 34")
+
+    def test_broken_skill_asset_reference_is_rejected(self) -> None:
+        path = self.skill / "SKILL.md"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            text.replace("assets/pom-spring-boot-3.xml", "assets/pom-spring-boot-9.xml"),
+            encoding="utf-8",
+        )
+        self.assert_rejected("SKILL.md: referenced file does not exist: assets/pom-spring-boot-9.xml")
+
+    def test_unrouted_rule_file_is_rejected(self) -> None:
+        path = self.skill / "SKILL.md"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            text.replace("testing/test-mockito.md", "testing/mockito.md"),
+            encoding="utf-8",
+        )
+        self.assert_rejected("SKILL.md: rule file is not routed: testing/test-mockito.md")
+
+    def test_always_apply_is_rejected(self) -> None:
+        path = self.skill / "core" / "java-api-design.md"
+        text = path.read_text(encoding="utf-8")
+        path.write_text(
+            text.replace("impact: HIGH", "impact: HIGH\nalwaysApply: true", 1),
+            encoding="utf-8",
+        )
+        self.assert_rejected("avoid alwaysApply")
+
 
 if __name__ == "__main__":
     unittest.main()
